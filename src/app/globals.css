@@ -1,0 +1,40 @@
+@import "tailwindcss";
+@import "../shared/festival.css";
+
+@theme {
+  --color-brand-50: #eef7f1;
+  --color-brand-100: #d6ecdf;
+  --color-brand-500: #2f6f4f;
+  --color-brand-600: #275d42;
+  --color-brand-700: #1f4a35;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+body { background: #f6f7f5; color: #1c211e; }
+
+@utility adm-input { @apply w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 disabled:bg-zinc-100; }
+@utility adm-label { @apply flex flex-col gap-1.5 text-sm font-medium text-zinc-700; }
+@utility adm-help { @apply text-xs font-normal text-zinc-500; }
+@utility adm-btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50; }
+@utility adm-btn-primary { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 bg-brand-500 text-white hover:bg-brand-600; }
+@utility adm-btn-secondary { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50; }
+@utility adm-btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 text-zinc-700 hover:bg-zinc-100; }
+@utility adm-btn-danger { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 bg-red-600 text-white hover:bg-red-700; }
+@utility adm-btn-sm { @apply px-2.5 py-1.5 text-xs; }
+@utility adm-card { @apply rounded-xl border border-zinc-200 bg-white shadow-sm; }
+@utility adm-badge { @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium; }
+
+.adm-table { width: 100%; text-align: left; font-size: 0.875rem; }
+.adm-table th { border-bottom: 1px solid #e4e4e7; padding: 0.625rem 1rem; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #71717a; white-space: nowrap; }
+.adm-table td { border-bottom: 1px solid #f4f4f5; padding: 0.75rem 1rem; vertical-align: middle; }
+.adm-table tr:hover td { background: #fafafa; }
+
+/* Editor de texto rico */
+.tiptap { min-height: 8rem; outline: none; padding: 0.75rem; }
+.tiptap > * + * { margin-top: 0.6em; }
+.tiptap ul { list-style: disc; padding-left: 1.3em; }
+.tiptap ol { list-style: decimal; padding-left: 1.3em; }
+.tiptap h2 { font-size: 1.35em; font-weight: 700; }
+.tiptap h3 { font-size: 1.15em; font-weight: 700; }
+.tiptap a { color: #2f6f4f; text-decoration: underline; }
+.tiptap blockquote { border-left: 3px solid #d4d4d8; padding-left: 0.8em; font-style: italic; }
