@@ -147,7 +147,7 @@ export function PagesList({ pages, isAdmin, siteUrl }: { pages: PageRow[]; isAdm
       </div>
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <div className="adm-card overflow-x-auto">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+        <DndContext id="lista-paginas" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <table className="adm-table">
             <thead>
               <tr>

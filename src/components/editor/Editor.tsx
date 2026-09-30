@@ -328,7 +328,7 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
 
       <div className="flex min-h-0 flex-1">
         {/* Estrutura */}
-        <aside className="hidden w-72 shrink-0 flex-col overflow-y-auto border-r border-zinc-200 bg-zinc-50 md:flex">
+        <aside className="hidden w-72 shrink-0 flex-col overflow-y-auto overflow-x-hidden border-r border-zinc-200 bg-zinc-50 md:flex">
           <div className="px-4 pt-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">Estrutura da página</div>
           <Structure
             sections={content.sections}

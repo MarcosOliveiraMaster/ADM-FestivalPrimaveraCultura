@@ -208,14 +208,18 @@ Regras de acesso (RLS): visitante anônimo **lê** páginas publicadas e **inser
 
 ---
 
-## 8. Pendências (para decidir)
+## 8. Situação
 
-- [x] Banco: Supabase · Hospedagem: Vercel (endereço `.vercel.app` até ter domínio)
+**Protótipo pronto (fases 1 a 6):** banco com RLS, login e papéis, editor visual, mídia, site público, formulários, métricas, configurações e usuários.
+
+- [x] Banco: Supabase (projeto “LadingPage - Festival Primavera”) · Hospedagem: Vercel
 - [x] Nome: **Festival da Primavera**
 - [x] Formulários vistos só no ADM (sem e-mail de aviso)
-- [ ] Criar projeto Supabase
-- [ ] Local, datas e horários do festival
-- [ ] Identidade visual: logo, cores, fontes (upload pelo ADM quando prontos)
+- [x] Primeiro admin convidado: marcos.lucas.ti@gmail.com
+- [ ] Conectar o GitHub à conta da Vercel (necessário para publicar)
+- [ ] Supabase → Authentication → URL Configuration apontando para o endereço do ADM
+- [ ] Local, datas e horários do festival (preencher em Configurações)
+- [ ] Identidade visual: logo, cores, fontes (upload em Configurações → Identidade visual)
 - [ ] Domínio próprio
-- [ ] Campos definitivos do formulário e texto de privacidade/LGPD
-- [ ] Conteúdo inicial: textos, fotos e primeiros eventos
+
+**Fora do protótipo (próximas melhorias sugeridas):** link privado de pré-visualização para pessoas sem login, “onde este arquivo é usado” na biblioteca de mídia, arrastar blocos entre colunas diferentes (hoje: seletor “mover para coluna”).

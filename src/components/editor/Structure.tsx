@@ -26,13 +26,13 @@ function blockSummary(b: Block) {
 function SortableBlock({ block, selected, onSelect }: { block: Block; selected: boolean; onSelect: () => void }) {
   const { setNodeRef, transform, transition, isDragging, attributes, listeners } = useSortable({ id: block.id });
   return (
-    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`group flex items-center gap-1 rounded-md border text-xs ${selected ? "border-brand-500 bg-brand-50" : "border-transparent bg-white hover:border-zinc-300"} ${isDragging ? "z-10 shadow" : ""}`}>
+    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={`group flex min-w-0 items-center gap-1 overflow-hidden rounded-md border text-xs ${selected ? "border-brand-500 bg-brand-50" : "border-transparent bg-white hover:border-zinc-300"} ${isDragging ? "z-10 shadow" : ""}`}>
       <button type="button" className="cursor-grab px-1 py-1.5 text-zinc-300 group-hover:text-zinc-500" aria-label="Arrastar bloco" {...attributes} {...listeners}>
         <GripVertical size={13} />
       </button>
-      <button type="button" onClick={onSelect} className="min-w-0 flex-1 py-1.5 pr-2 text-left">
+      <button type="button" onClick={onSelect} className="min-w-0 flex-1 truncate py-1.5 pr-2 text-left">
         <span className="font-medium text-zinc-800">{blockLabel(block.type)}</span>
-        <span className="ml-1.5 truncate text-zinc-500">{blockSummary(block).slice(0, 40)}</span>
+        <span className="ml-1.5 text-zinc-500">{blockSummary(block).slice(0, 40)}</span>
       </button>
     </div>
   );
@@ -78,11 +78,12 @@ function SortableSection({ section, index, expanded, onToggle, selection, onSele
         </span>
       </div>
       {expanded && (
-        <div className={`grid gap-1.5 border-t border-zinc-100 bg-zinc-50 p-1.5 ${section.columns.length > 1 ? "grid-cols-1" : ""}`}>
+        <div className="grid grid-cols-1 gap-1.5 border-t border-zinc-100 bg-zinc-50 p-1.5">
           {section.columns.map((col, ci) => (
             <div key={ci} className="flex flex-col gap-0.5 rounded-md">
               {section.columns.length > 1 && <span className="px-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Coluna {ci + 1}</span>}
               <DndContext
+                id={`blocos-${section.id}-${ci}`}
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={(e: DragEndEvent) => e.over && e.active.id !== e.over.id && onReorderBlocks(ci, String(e.active.id), String(e.over.id))}
@@ -118,7 +119,7 @@ export function Structure({ sections, selection, expanded, onToggle, onSelect, o
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
   return (
     <div className="flex flex-col gap-2 p-3">
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => e.over && e.active.id !== e.over.id && onReorderSections(String(e.active.id), String(e.over.id))}>
+      <DndContext id="secoes" sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => e.over && e.active.id !== e.over.id && onReorderSections(String(e.active.id), String(e.over.id))}>
         <SortableContext items={sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
           {sections.map((s, i) => (
             <SortableSection
