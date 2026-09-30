@@ -1,4 +1,4 @@
-# Festival Primavera Cultura — Especificação de Funcionalidades
+# Festival da Primavera — Especificação de Funcionalidades
 
 > Documento vivo. Define **o que** o sistema faz antes de escrevermos código.
 > Mesma cópia em `FestivalPrimaveraCultura/docs/` e `ADM-FestivalPrimaveraCultura/docs/`.
@@ -22,6 +22,10 @@ Dois sites, um banco de dados em comum:
 
 **Tecnologia:** Next.js (App Router) + TypeScript + Tailwind CSS · Supabase (banco, login, upload de imagens, regras de acesso RLS) · Tiptap (editor de texto rico) · dnd-kit (arrastar e soltar) · Hospedagem na Vercel (um projeto por repositório).
 
+**Endereços:** enquanto não houver domínio, cada site usa o endereço gratuito da Vercel (ex.: `festival-da-primavera.vercel.app` e `adm-festival-da-primavera.vercel.app`). O domínio próprio entra depois sem mudar código.
+
+**Nome do evento:** Festival da Primavera. Local, datas e horários: **a definir** (o site mostra "Em breve" enquanto os campos estiverem vazios).
+
 ---
 
 ## 2. Site público (`FestivalPrimaveraCultura`)
@@ -34,8 +38,8 @@ Dois sites, um banco de dados em comum:
 
 ### 2.2 Landing page (Início)
 A home é montada com o **mesmo editor de blocos** das páginas de evento, então tudo nela é editável. Modelo inicial sugerido:
-1. **Hero** — nome do festival, data, frase, imagem/vídeo de fundo, botão "Quero participar".
-2. **Contagem regressiva** até o festival.
+1. **Hero** — "Festival da Primavera", data ("em breve" até ser definida), frase, imagem/vídeo de fundo, botão "Quero participar".
+2. **Contagem regressiva** até o festival (fica oculta enquanto a data não for definida).
 3. **Sobre** o festival.
 4. **Programação** — bloco automático com os próximos eventos.
 5. **Galeria** de fotos.
@@ -121,7 +125,23 @@ Comportamento do editor:
 - Pastas / busca, texto alternativo (acessibilidade), mostra onde cada arquivo está em uso.
 
 ### 3.5 Configurações do site (Admin)
-Nome e data do festival, logo, favicon, cores e fontes, itens do NAV, rodapé, redes sociais, e-mails que recebem aviso de novo formulário, textos de LGPD/privacidade.
+Nome do festival, local, datas e horários, itens do NAV, rodapé, redes sociais, textos de LGPD/privacidade.
+
+### 3.6 Identidade visual (espaços para upload)
+A identidade (logo, fontes, cores) será criada depois. O sistema nasce com **espaços reservados** que mostram um visual neutro provisório até o upload:
+
+| Espaço | Onde aparece | Formato sugerido |
+|---|---|---|
+| Logo principal | NAV, rodapé | SVG ou PNG transparente |
+| Logo versão clara | Sobre fundos escuros/imagens | SVG ou PNG transparente |
+| Ícone / favicon | Aba do navegador, atalho no celular | PNG 512×512 |
+| Imagem de compartilhamento padrão | Prévia em WhatsApp/Instagram/Facebook | 1200×630 |
+| Capa da landing (hero) | Topo da página inicial | 1920×1080 (imagem ou vídeo) |
+| Capa padrão de evento | Cards e topo de eventos sem capa própria | 1600×900 |
+| Fontes (títulos e textos) | Site inteiro | Arquivo .woff2 ou escolha no Google Fonts |
+| Paleta de cores | Botões, fundos, destaques | Primária, secundária, destaque, fundo, texto |
+
+Cada página e seção também tem seus próprios campos de capa/imagem, todos pela biblioteca de mídia.
 
 ---
 
@@ -135,7 +155,7 @@ Nome e data do festival, logo, favicon, cores e fontes, itens do NAV, rodapé, r
 - Tabela de inscritos com busca e filtros (evento, data, cidade, status).
 - **Status de atendimento**: Novo → Contatado → Confirmado / Descartado, com observações internas.
 - **Exportar CSV/Excel** (tudo ou filtrado).
-- **Aviso por e-mail** a cada novo envio (e resumo diário opcional).
+- **Sem e-mails de aviso**: as respostas são vistas **somente dentro do ADM**, com contador de "novos" no menu e destaque no painel inicial.
 - Botão de WhatsApp direto para o contato.
 - Excluir dados de um inscrito a pedido dele (LGPD).
 
@@ -190,10 +210,12 @@ Regras de acesso (RLS): visitante anônimo **lê** páginas publicadas e **inser
 
 ## 8. Pendências (para decidir)
 
-- [ ] Criar projeto Supabase (**adiado**, a pedido)
-- [ ] Nome oficial, datas e local do festival
-- [ ] Identidade visual: logo, cores, fontes (ou criamos uma proposta)
-- [ ] Domínios (ex.: `festivalprimaveracultura.com.br` e `adm.festival…`)
-- [ ] E-mail(s) para receber avisos de formulário
+- [x] Banco: Supabase · Hospedagem: Vercel (endereço `.vercel.app` até ter domínio)
+- [x] Nome: **Festival da Primavera**
+- [x] Formulários vistos só no ADM (sem e-mail de aviso)
+- [ ] Criar projeto Supabase
+- [ ] Local, datas e horários do festival
+- [ ] Identidade visual: logo, cores, fontes (upload pelo ADM quando prontos)
+- [ ] Domínio próprio
 - [ ] Campos definitivos do formulário e texto de privacidade/LGPD
 - [ ] Conteúdo inicial: textos, fotos e primeiros eventos
