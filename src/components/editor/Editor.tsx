@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CalendarClock, Check, ChevronDown, CloudOff, ExternalLink, History, Loader2, Monitor, Redo2, Settings2, Smartphone, Tablet, Undo2 } from "lucide-react";
+import { ArrowLeft, CalendarClock, Check, ChevronDown, CloudOff, Eye, ExternalLink, History, ListTree, Loader2, Monitor, Redo2, Settings2, SlidersHorizontal, Smartphone, Tablet, Undo2 } from "lucide-react";
 import type { Block, BlockType, EventSummary, PageContent, PageKind, PageStatus, Section, SiteSettings } from "@/shared/types";
 import { BLOCK_LIBRARY, layoutCols, LAYOUTS, newBlock, newSection, relayout, uid } from "@/shared/blocks";
 import { googleFontsHref, themeCss } from "@/shared/theme";
@@ -51,6 +51,8 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
   const [selection, setSelection] = useState<Selection>(null);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(initialContent.sections.slice(0, 1).map((s) => s.id)));
   const [device, setDevice] = useState<keyof typeof DEVICES>("desktop");
+  const [mobileTab, setMobileTab] = useState<"structure" | "preview" | "inspector">("preview");
+  const isMobile = () => typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
   const [save, setSave] = useState<"saved" | "dirty" | "saving" | "error">("saved");
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [publishedSnapshot, setPublishedSnapshot] = useState(publishedJson);
@@ -193,14 +195,24 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
       return { sections };
     });
 
-  const reorderBlocks = (sid: string, col: number, from: string, to: string) =>
+  /** Move um bloco para outra posição (inclusive outra coluna) dentro da mesma seção. */
+  const moveBlockTo = (sid: string, bid: string, toCol: number, toIndex: number) =>
     mapSection(sid, (s) => {
-      const list = [...s.columns[col]];
-      const a = list.findIndex((b) => b.id === from);
-      const b = list.findIndex((x) => x.id === to);
-      const [m] = list.splice(a, 1);
-      list.splice(b, 0, m);
-      return { ...s, columns: s.columns.map((c, i) => (i === col ? list : c)) };
+      let fromCol = -1;
+      let fromIndex = -1;
+      s.columns.forEach((c, ci) => {
+        const i = c.findIndex((b) => b.id === bid);
+        if (i >= 0) {
+          fromCol = ci;
+          fromIndex = i;
+        }
+      });
+      if (fromCol < 0 || !s.columns[toCol]) return s;
+      const columns = s.columns.map((c) => [...c]);
+      const [moved] = columns[fromCol].splice(fromIndex, 1);
+      const target = Math.min(toIndex, columns[toCol].length);
+      columns[toCol].splice(target, 0, moved);
+      return { ...s, columns };
     });
 
   const moveBlock = (bid: string, d: -1 | 1) => {
@@ -273,21 +285,21 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
   const isLive = page.status === "published" || (page.status === "scheduled" && !!page.publish_at && new Date(page.publish_at).getTime() <= now);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-zinc-100">
+    <div className="flex h-dvh flex-col overflow-hidden bg-zinc-100">
       {fonts && <link rel="stylesheet" href={fonts} />}
       <style dangerouslySetInnerHTML={{ __html: themeCss(settings.theme, ".fp-scope") }} />
 
       {/* Barra superior */}
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-zinc-200 bg-white px-3">
+      <header className="flex h-14 shrink-0 items-center gap-1 border-b border-zinc-200 bg-white px-2 sm:gap-2 sm:px-3">
         <a href="/paginas" className="adm-btn-ghost adm-btn-sm" title="Voltar"><ArrowLeft size={16} /></a>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="truncate font-semibold">{page.title}</span>
-            <StatusBadge status={page.status} publishAt={page.publish_at} />
+        <div className="min-w-0 flex-1 md:flex-none">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="min-w-0 truncate font-semibold md:max-w-[40vw]">{page.title}</span>
+            <span className="shrink-0 max-sm:hidden"><StatusBadge status={page.status} publishAt={page.publish_at} /></span>
           </div>
-          <div className="flex items-center gap-1 text-xs text-zinc-500">
-            {save === "saving" ? (<><Loader2 size={12} className="animate-spin" /> Salvando rascunho…</>) : save === "dirty" ? "Alterações pendentes…" : save === "error" ? (<span className="flex items-center gap-1 text-red-600"><CloudOff size={12} /> Erro ao salvar — verifique a conexão</span>) : (<><Check size={12} /> Rascunho salvo {savedAt ? formatDateTime(savedAt)?.split(", ").pop() : ""}</>)}
-            {unpublished && isLive && <span className="ml-2 text-amber-700">· alterações ainda não publicadas</span>}
+          <div className="flex min-w-0 items-center gap-1 truncate whitespace-nowrap text-xs text-zinc-500">
+            {save === "saving" ? (<><Loader2 size={12} className="animate-spin" /> Salvando rascunho…</>) : save === "dirty" ? "Alterações pendentes…" : save === "error" ? (<span className="flex items-center gap-1 text-red-600"><CloudOff size={12} /> Erro ao salvar — verifique a conexão</span>) : (<><Check size={12} className="shrink-0" /> Rascunho salvo {savedAt ? formatDateTime(savedAt)?.split(", ").pop() : ""}</>)}
+            {unpublished && isLive && <span className="ml-2 text-amber-700 max-sm:hidden">· alterações ainda não publicadas</span>}
           </div>
         </div>
         <div className="mx-auto hidden items-center gap-0.5 rounded-lg bg-zinc-100 p-0.5 md:flex">
@@ -300,15 +312,15 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
             );
           })}
         </div>
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
           <button type="button" className="adm-btn-ghost adm-btn-sm" onClick={undo} disabled={!past.length} title="Desfazer (Ctrl+Z)"><Undo2 size={16} /></button>
           <button type="button" className="adm-btn-ghost adm-btn-sm" onClick={redo} disabled={!future.length} title="Refazer (Ctrl+Shift+Z)"><Redo2 size={16} /></button>
-          <button type="button" className="adm-btn-ghost adm-btn-sm" onClick={() => setVersionsOpen(true)} title="Histórico de versões"><History size={16} /></button>
+          <button type="button" className="adm-btn-ghost adm-btn-sm max-sm:hidden" onClick={() => setVersionsOpen(true)} title="Histórico de versões"><History size={16} /></button>
           <button type="button" className="adm-btn-secondary adm-btn-sm" onClick={() => setSettingsOpen(true)}><Settings2 size={15} /> <span className="hidden lg:inline">Configurações da página</span></button>
-          {isLive && <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="adm-btn-ghost adm-btn-sm" title="Ver no site"><ExternalLink size={16} /></a>}
+          {isLive && <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="adm-btn-ghost adm-btn-sm max-sm:hidden" title="Ver no site"><ExternalLink size={16} /></a>}
           <div className="relative flex">
-            <button type="button" className="adm-btn-primary rounded-r-none" disabled={publishing} onClick={() => doPublish(null)}>
-              {publishing ? <Loader2 size={15} className="animate-spin" /> : null} {isLive ? "Publicar alterações" : "Publicar"}
+            <button type="button" className="adm-btn-primary rounded-r-none max-sm:px-2.5" disabled={publishing} onClick={() => doPublish(null)}>
+              {publishing ? <Loader2 size={15} className="animate-spin" /> : null} <span className="max-sm:hidden">{isLive ? "Publicar alterações" : "Publicar"}</span><span className="sm:hidden">Publicar</span>
             </button>
             <button type="button" className="adm-btn-primary rounded-l-none border-l border-white/25 px-2" onClick={() => setPublishMenu((o) => !o)} aria-label="Mais opções"><ChevronDown size={15} /></button>
             {publishMenu && (
@@ -329,24 +341,27 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
 
       <div className="flex min-h-0 flex-1">
         {/* Estrutura */}
-        <aside className="hidden w-72 shrink-0 flex-col overflow-y-auto overflow-x-hidden border-r border-zinc-200 bg-zinc-50 md:flex">
+        <aside className={`${mobileTab === "structure" ? "flex w-full" : "hidden"} shrink-0 flex-col overflow-y-auto overflow-x-hidden border-r border-zinc-200 bg-zinc-50 md:flex md:w-72`}>
           <div className="px-4 pt-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">Estrutura da página</div>
           <Structure
             sections={content.sections}
             selection={selection}
             expanded={expanded}
             onToggle={(id) => setExpanded((e) => { const n = new Set(e); if (n.has(id)) n.delete(id); else n.add(id); return n; })}
-            onSelect={setSelection}
+            onSelect={(sel, fromStructure) => {
+              setSelection(sel);
+              if (fromStructure && isMobile()) setMobileTab("inspector");
+            }}
             onReorderSections={reorderSections}
             onAddSection={(at) => setAddSectionAt(at)}
             onAddBlock={(sid, col) => setAddBlockTo({ sid, col })}
-            onReorderBlocks={reorderBlocks}
+            onMoveBlock={moveBlockTo}
           />
         </aside>
 
         {/* Pré-visualização */}
         <main
-          className="min-w-0 flex-1 overflow-y-auto p-4"
+          className={`min-w-0 flex-1 overflow-y-auto p-2 md:p-4 ${mobileTab === "preview" ? "" : "max-md:hidden"}`}
           onClick={(e) => { if (e.target === e.currentTarget) setSelection(null); }}
         >
           <div
@@ -416,7 +431,9 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
         </main>
 
         {/* Inspetor */}
-        <aside className={`w-80 shrink-0 overflow-y-auto border-l border-zinc-200 bg-white max-lg:absolute max-lg:bottom-0 max-lg:right-0 max-lg:top-14 max-lg:z-40 max-lg:shadow-xl ${selection ? "" : "max-lg:hidden"}`}>
+        <aside
+          className={`w-80 shrink-0 overflow-y-auto border-l border-zinc-200 bg-white md:max-lg:absolute md:max-lg:bottom-0 md:max-lg:right-0 md:max-lg:top-14 md:max-lg:z-40 md:max-lg:shadow-xl ${selection ? "" : "md:max-lg:hidden"} ${mobileTab === "inspector" ? "max-md:w-full" : "max-md:hidden"}`}
+        >
           {selBlock && selSection ? (
             <BlockInspector
               key={selBlock.block.id}
@@ -458,6 +475,21 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
           )}
         </aside>
       </div>
+
+      {/* Abas do celular */}
+      <nav className="grid h-14 shrink-0 grid-cols-3 border-t border-zinc-200 bg-white md:hidden">
+        {([
+          ["structure", "Estrutura", ListTree],
+          ["preview", "Prévia", Eye],
+          ["inspector", "Editar", SlidersHorizontal],
+        ] as const).map(([k, label, Icon]) => (
+          <button key={k} type="button" onClick={() => setMobileTab(k)} className={`relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${mobileTab === k ? "text-brand-600" : "text-zinc-500"}`}>
+            <Icon size={19} />
+            {label}
+            {k === "inspector" && selection && mobileTab !== "inspector" && <span className="absolute right-[30%] top-2 h-2 w-2 rounded-full bg-brand-500" />}
+          </button>
+        ))}
+      </nav>
 
       {/* Modais */}
       <Modal open={addSectionAt !== null} onClose={() => setAddSectionAt(null)} title="Adicionar seção" wide>

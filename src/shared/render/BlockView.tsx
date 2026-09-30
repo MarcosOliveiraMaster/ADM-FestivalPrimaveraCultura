@@ -5,6 +5,7 @@ import { Countdown } from "./Countdown";
 import { Gallery } from "./Gallery";
 import { InterestForm } from "./InterestForm";
 import { BrandIcon } from "./BrandIcon";
+import { FramedImage } from "./FramedImage";
 
 const TXT_ALIGN = { left: "text-left", center: "text-center", right: "text-right" } as const;
 const JUSTIFY = { left: "justify-start", center: "justify-center", right: "justify-end" } as const;
@@ -31,8 +32,11 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
     case "image": {
       const p = block.props;
       if (!p.url) return <Placeholder ctx={ctx} label="Imagem — escolha um arquivo" />;
-      // eslint-disable-next-line @next/next/no-img-element
-      const img = <img src={p.url} alt={p.alt ?? ""} loading="lazy" className={`w-full object-cover ${RATIO[p.ratio ?? "auto"]} ${p.rounded ? "rounded-2xl" : ""}`} />;
+      const img = (
+        <div className={`overflow-hidden ${p.rounded ? "rounded-2xl" : ""}`}>
+          <FramedImage url={p.url} alt={p.alt ?? ""} className={`block w-full object-cover ${RATIO[p.ratio ?? "auto"]}`} />
+        </div>
+      );
       return (
         <figure className="flex flex-col gap-2">
           {p.link ? <a href={p.link} data-track={`imagem:${p.alt || p.link}`}>{img}</a> : img}
@@ -165,8 +169,11 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
           {p.title && <div className="fp-label text-center">{p.title}</div>}
           <div className="flex flex-wrap items-center justify-center gap-8">
             {p.items.map((l, i) => {
-              // eslint-disable-next-line @next/next/no-img-element
-              const img = <img src={l.url} alt={l.name ?? ""} className={`h-14 w-auto object-contain ${p.grayscale ? "grayscale transition hover:grayscale-0" : ""}`} loading="lazy" />;
+              const img = (
+                <span className="inline-flex h-14 overflow-hidden">
+                  <FramedImage url={l.url} alt={l.name ?? ""} className={`h-full w-auto max-w-none object-contain ${p.grayscale ? "grayscale transition hover:grayscale-0" : ""}`} />
+                </span>
+              );
               return l.link ? (
                 <a key={i} href={l.link} target="_blank" rel="noopener noreferrer" data-track={`logo:${l.name ?? l.link}`}>{img}</a>
               ) : (
@@ -208,8 +215,9 @@ export function EventCard({ e, fallback, icon }: { e: RenderContext["events"][nu
     <a href={`/eventos/${e.slug}`} data-track={`evento:${e.slug}`} className="fp-event-card group">
       <div className="aspect-[16/10] overflow-hidden">
         {cover ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={cover} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+          <div className="h-full w-full transition duration-500 group-hover:scale-105">
+            <FramedImage url={cover} className="h-full w-full object-cover" />
+          </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center" style={{ background: "linear-gradient(135deg, var(--fp-primary), var(--fp-accent))" }}>
             <BrandIcon url={icon} className="h-16 opacity-90" />

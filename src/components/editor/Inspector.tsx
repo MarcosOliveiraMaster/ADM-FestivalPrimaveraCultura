@@ -4,7 +4,8 @@ import { AlignCenter, AlignLeft, AlignRight, ArrowDown, ArrowUp, Copy, Images, T
 import type { Block, BlockMap, BlockType, Section, SectionStyle } from "@/shared/types";
 import { LAYOUTS, blockLabel } from "@/shared/blocks";
 import { videoEmbedUrl } from "@/shared/format";
-import { MediaField, MediaPickerModal } from "../MediaLibrary";
+import { FrameButton, MediaField, MediaPickerModal } from "../MediaLibrary";
+import { FramedImage } from "@/shared/render/FramedImage";
 import { RichTextEditor } from "./RichTextEditor";
 import { ColorInput, DateTime, ListEditor, NumberField, Segmented, Select, Text, Toggle } from "./fields";
 
@@ -73,7 +74,7 @@ export function SectionInspector({ section, onChange, onLayout, onMove, onDuplic
         />
         {(s.bgType === "color" || s.bgType === "gradient") && <ColorInput label={s.bgType === "gradient" ? "Cor inicial" : "Cor"} value={s.bgColor} onChange={(v) => set({ bgColor: v })} placeholder={s.bgType === "gradient" ? "cor primária" : "#ffffff"} />}
         {s.bgType === "gradient" && <ColorInput label="Cor final" value={s.bgColor2} onChange={(v) => set({ bgColor2: v })} placeholder="cor de destaque" />}
-        {s.bgType === "image" && <MediaField label="Imagem de fundo" value={s.bgUrl} onChange={(v) => set({ bgUrl: v })} help="Vazio = usa a capa da landing definida em Configurações." folder="fundos" />}
+        {s.bgType === "image" && <MediaField label="Imagem de fundo" value={s.bgUrl} onChange={(v) => set({ bgUrl: v })} help="Vazio = usa a capa da landing definida em Configurações. Clique em Ajustar para posicionar e dar zoom." folder="fundos" aspect="16 / 9" mobile />}
         {s.bgType === "video" && <MediaField label="Vídeo de fundo (MP4)" kind="video" value={s.bgUrl} onChange={(v) => set({ bgUrl: v })} folder="fundos" />}
         {(s.bgType === "image" || s.bgType === "video") && (
           <label className="adm-label">
@@ -149,7 +150,7 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
       const p = block.props;
       return (
         <>
-          <MediaField label="Imagem" value={p.url} onChange={(v) => set({ url: v })} />
+          <MediaField label="Imagem" value={p.url} onChange={(v) => set({ url: v })} aspect={{ auto: "4 / 3", "1/1": "1 / 1", "4/3": "4 / 3", "16/9": "16 / 9", "3/4": "3 / 4" }[p.ratio ?? "auto"]} help={p.ratio === "auto" || !p.ratio ? "Com proporção “Original”, o ajuste serve para dar zoom; escolha uma proporção para também reposicionar." : undefined} />
           <Text label="Texto alternativo" value={p.alt} onChange={(v) => set({ alt: v })} help="Descreve a imagem para leitores de tela e Google." />
           <Text label="Legenda" value={p.caption} onChange={(v) => set({ caption: v })} />
           <Text label="Link ao clicar (opcional)" value={p.link} onChange={(v) => set({ link: v })} placeholder="https://" />
@@ -173,9 +174,11 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
             addLabel="Adicionar vazia"
             render={(im, setIm) => (
               <div className="flex gap-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {im.url ? <img src={im.url} alt="" className="h-12 w-12 rounded object-cover" /> : <div className="h-12 w-12 rounded bg-zinc-200" />}
-                <input value={im.alt ?? ""} onChange={(e) => setIm({ ...im, alt: e.target.value })} placeholder="Descrição" className="adm-input" />
+                {im.url ? <span className="h-12 w-12 shrink-0 overflow-hidden rounded"><FramedImage url={im.url} className="h-full w-full object-cover" /></span> : <div className="h-12 w-12 shrink-0 rounded bg-zinc-200" />}
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <input value={im.alt ?? ""} onChange={(e) => setIm({ ...im, alt: e.target.value })} placeholder="Descrição" className="adm-input" />
+                  <FrameButton url={im.url} onChange={(url) => setIm({ ...im, url })} aspect={p.mode === "carousel" ? "16 / 9" : "1 / 1"} />
+                </div>
               </div>
             )}
           />
@@ -324,11 +327,11 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
             addLabel="Adicionar vazio"
             render={(it, setIt) => (
               <div className="flex gap-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {it.url ? <img src={it.url} alt="" className="h-12 w-12 rounded bg-white object-contain" /> : <div className="h-12 w-12 rounded bg-zinc-200" />}
-                <div className="flex flex-1 flex-col gap-1">
+                {it.url ? <span className="h-12 w-12 shrink-0 overflow-hidden rounded bg-white"><FramedImage url={it.url} className="h-full w-full object-contain" /></span> : <div className="h-12 w-12 shrink-0 rounded bg-zinc-200" />}
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <input value={it.name ?? ""} onChange={(e) => setIt({ ...it, name: e.target.value })} placeholder="Nome" className="adm-input" />
                   <input value={it.link ?? ""} onChange={(e) => setIt({ ...it, link: e.target.value })} placeholder="Site (opcional)" className="adm-input" />
+                  <FrameButton url={it.url} onChange={(url) => setIt({ ...it, url })} aspect="3 / 1" fit="contain" />
                 </div>
               </div>
             )}

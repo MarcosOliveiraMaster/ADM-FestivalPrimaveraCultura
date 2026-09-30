@@ -1,5 +1,7 @@
 import type { Block, PageContent, RenderContext, Section } from "../types";
 import { BlockView } from "./BlockView";
+import { FramedImage } from "./FramedImage";
+import { frameStyle, parseImage } from "../image";
 
 const GRID: Record<Section["layout"], string> = {
   "1": "grid-cols-1",
@@ -31,12 +33,15 @@ export function SectionView({ section, ctx, renderBlock }: { section: Section; c
       style={bg}
     >
       {imgUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={imgUrl} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover" />
+        <div className="absolute inset-0 -z-20 overflow-hidden">
+          <FramedImage url={imgUrl} loading="eager" className="h-full w-full object-cover" />
+        </div>
       )}
       {s.bgType === "image" && !imgUrl && <div className="absolute inset-0 -z-20" style={{ background: "linear-gradient(135deg, var(--fp-primary), var(--fp-accent))" }} />}
       {s.bgType === "video" && s.bgUrl && (
-        <video src={s.bgUrl} autoPlay muted loop playsInline className="absolute inset-0 -z-20 h-full w-full object-cover" />
+        <div className="absolute inset-0 -z-20 overflow-hidden">
+          <video src={parseImage(s.bgUrl).src} autoPlay muted loop playsInline className="h-full w-full object-cover" style={frameStyle(parseImage(s.bgUrl).frame)} />
+        </div>
       )}
       {(s.bgType === "image" || s.bgType === "video") && (
         <div className="absolute inset-0 -z-10 bg-black" style={{ opacity: (s.overlay ?? 40) / 100 }} />

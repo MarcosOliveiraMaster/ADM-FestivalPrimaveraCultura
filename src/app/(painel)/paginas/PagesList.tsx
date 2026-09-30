@@ -1,7 +1,8 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { DndContext, closestCenter, MouseSensor, TouchSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Copy, ExternalLink, EyeOff, GripVertical, Home, Pencil, Plus, Send, Trash2 } from "lucide-react";
@@ -39,7 +40,7 @@ function Row({ p, isAdmin, siteUrl, onAction, busy }: { p: PageRow; isAdmin: boo
     <tr ref={setNodeRef} style={style} className={isDragging ? "relative z-10 bg-white shadow-lg" : ""}>
       <td className="w-8 !pr-0">
         {p.kind !== "home" ? (
-          <button type="button" className="cursor-grab text-zinc-400 hover:text-zinc-700" aria-label="Arrastar" {...attributes} {...listeners}>
+          <button type="button" className="flex h-9 w-8 cursor-grab touch-none items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 active:cursor-grabbing" aria-label="Arrastar" {...attributes} {...listeners}>
             <GripVertical size={16} />
           </button>
         ) : (
@@ -110,7 +111,11 @@ export function PagesList({ pages, isAdmin, siteUrl }: { pages: PageRow[]; isAdm
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"todas" | "evento" | "institucional">("todas");
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   const onAction = (fn: () => Promise<unknown>) =>
     start(async () => {
@@ -147,7 +152,7 @@ export function PagesList({ pages, isAdmin, siteUrl }: { pages: PageRow[]; isAdm
       </div>
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <div className="adm-card overflow-x-auto">
-        <DndContext id="lista-paginas" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+        <DndContext id="lista-paginas" modifiers={[restrictToVerticalAxis]} sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <table className="adm-table">
             <thead>
               <tr>
@@ -170,7 +175,7 @@ export function PagesList({ pages, isAdmin, siteUrl }: { pages: PageRow[]; isAdm
         </DndContext>
         {visible.length <= 1 && <p className="p-8 text-center text-sm text-zinc-500">Nenhuma página de evento ainda. Clique em “Nova página” para começar.</p>}
       </div>
-      <p className="text-xs text-zinc-500">Arraste pelas alças ⠿ para definir a ordem em que os eventos aparecem no site.</p>
+      <p className="text-xs text-zinc-500">Arraste pelas alças ⠿ para definir a ordem em que os eventos aparecem no site. No celular, segure a alça por um instante antes de arrastar.</p>
       <CreateModal open={creating} onClose={() => setCreating(false)} />
     </div>
   );

@@ -47,8 +47,8 @@
 .fp-faq p { margin-top: .6rem; opacity: .85; }
 .fp-divider-flower { text-align: center; color: var(--fp-secondary); font-size: 1.1rem; letter-spacing: .4em; }
 .fp-divider-icons { display: flex; justify-content: center; align-items: center; gap: 1.25rem; }
-.fp-divider-icons img { height: 1.6rem; width: auto; object-fit: contain; }
-.fp-icon { display: inline-block; width: auto; object-fit: contain; }
+.fp-divider-icons .fp-icon { height: 1.6rem; }
+.fp-icon img { max-width: none; }
 .fp-gal-nav { position: absolute; top: 50%; transform: translateY(-50%); height: 2.5rem; width: 2.5rem; border-radius: 999px; background: rgb(255 255 255 / .85); color: #111; font-size: 1.5rem; line-height: 1; }
 .fp-placeholder { display: flex; align-items: center; justify-content: center; min-height: 8rem; padding: 1rem; border: 2px dashed rgb(127 127 127 / .45); border-radius: 1rem; font-size: .85rem; opacity: .7; text-align: center; }
 

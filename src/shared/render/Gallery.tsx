@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import type { GalleryProps } from "../types";
+import { FramedImage } from "./FramedImage";
+import { cleanSrc } from "../image";
 
 const COLS = { 2: "grid-cols-2", 3: "grid-cols-2 @2xl:grid-cols-3", 4: "grid-cols-2 @2xl:grid-cols-4" } as const;
 
@@ -24,8 +26,9 @@ export function Gallery({ images, mode, columns }: GalleryProps) {
         <div className="relative overflow-hidden rounded-2xl">
           <div className="flex transition-transform duration-500" style={{ transform: `translateX(-${slide * 100}%)` }}>
             {images.map((im, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={i} src={im.url} alt={im.alt ?? ""} onClick={() => setOpen(i)} className="aspect-video w-full shrink-0 cursor-zoom-in object-cover" loading="lazy" />
+              <div key={i} className="aspect-video w-full shrink-0 overflow-hidden">
+                <FramedImage url={im.url} alt={im.alt ?? ""} onClick={() => setOpen(i)} className="h-full w-full cursor-zoom-in object-cover" />
+              </div>
             ))}
           </div>
           {images.length > 1 && (
@@ -44,8 +47,9 @@ export function Gallery({ images, mode, columns }: GalleryProps) {
         <div className={`grid gap-3 ${COLS[columns] ?? COLS[3]}`}>
           {images.map((im, i) => (
             <button type="button" key={i} onClick={() => setOpen(i)} className="overflow-hidden rounded-xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={im.url} alt={im.alt ?? ""} className="aspect-square w-full cursor-zoom-in object-cover transition duration-500 hover:scale-105" loading="lazy" />
+              <div className="aspect-square w-full transition duration-500 hover:scale-105">
+                <FramedImage url={im.url} alt={im.alt ?? ""} className="h-full w-full cursor-zoom-in object-cover" />
+              </div>
             </button>
           ))}
         </div>
@@ -53,7 +57,7 @@ export function Gallery({ images, mode, columns }: GalleryProps) {
       {open !== null && (
         <div role="dialog" aria-modal className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" onClick={() => setOpen(null)}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={images[open].url} alt={images[open].alt ?? ""} className="max-h-full max-w-full rounded-lg object-contain" />
+          <img src={cleanSrc(images[open].url)} alt={images[open].alt ?? ""} className="max-h-full max-w-full rounded-lg object-contain" />
           <button type="button" aria-label="Fechar" className="absolute right-4 top-4 text-3xl text-white">×</button>
         </div>
       )}

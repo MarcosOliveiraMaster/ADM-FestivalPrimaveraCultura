@@ -1,6 +1,11 @@
+import { FramedImage } from "./FramedImage";
+
 /** Ícone da marca (imagem enviada em Configurações → Identidade visual). Sem imagem, não mostra nada. */
 export function BrandIcon({ url, className = "h-8", alt = "" }: { url?: string | null; className?: string; alt?: string }) {
   if (!url) return null;
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={url} alt={alt} aria-hidden={alt ? undefined : true} className={`fp-icon ${className}`} />;
+  return (
+    <span className={`fp-icon inline-flex shrink-0 overflow-hidden ${className}`} aria-hidden={alt ? undefined : true}>
+      <FramedImage url={url} alt={alt} className="h-full w-auto object-contain" />
+    </span>
+  );
 }

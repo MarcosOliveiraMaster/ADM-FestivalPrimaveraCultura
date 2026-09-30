@@ -67,7 +67,7 @@ export function PageSettingsModal({ open, onClose, page, onSaved }: { open: bool
               <Toggle label="Mostrar no menu “Eventos”" checked={m.show_in_nav} onChange={(v) => set({ show_in_nav: v })} />
             </>
           )}
-          {!home && <MediaField label="Imagem de capa" value={m.cover_url} onChange={(v) => set({ cover_url: v })} help="Aparece nos cards da programação. 1600×900 recomendado." folder="capas" />}
+          {!home && <MediaField label="Imagem de capa" value={m.cover_url} onChange={(v) => set({ cover_url: v })} help="Aparece nos cards da programação. 1600×900 recomendado." folder="capas" aspect="16 / 10" />}
         </div>
         <div className="flex flex-col gap-4">
           {!home && (
@@ -81,7 +81,7 @@ export function PageSettingsModal({ open, onClose, page, onSaved }: { open: bool
           <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Compartilhamento (SEO)</div>
           <Text label="Título no Google / redes" value={m.seo?.title} onChange={(v) => set({ seo: { ...m.seo, title: v } })} placeholder={m.title} />
           <Text label="Descrição" multiline value={m.seo?.description} onChange={(v) => set({ seo: { ...m.seo, description: v } })} help="Até ~160 caracteres." />
-          <MediaField label="Imagem de compartilhamento" value={m.seo?.image} onChange={(v) => set({ seo: { ...m.seo, image: v } })} help="1200×630. Vazio = usa a capa." folder="compartilhamento" />
+          <MediaField label="Imagem de compartilhamento" value={m.seo?.image} onChange={(v) => set({ seo: { ...m.seo, image: v } })} help="1200×630. Vazio = usa a capa." folder="compartilhamento" aspect="1200 / 630" />
         </div>
       </div>
     </Modal>

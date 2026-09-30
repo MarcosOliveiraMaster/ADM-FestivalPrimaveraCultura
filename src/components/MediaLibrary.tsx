@@ -3,6 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Copy, FileText, Film, Search, Trash2, Type, Upload } from "lucide-react";
 import { ACCEPT, deleteMedia, formatBytes, listMedia, matchesKind, updateMedia, uploadFile, type MediaItem, type MediaKind } from "@/lib/media";
 import { Modal } from "./Modal";
+import { FrameModal, type Fit } from "./FrameEditor";
+import { FramedImage } from "@/shared/render/FramedImage";
+import { cleanSrc, isFramed } from "@/shared/image";
 
 function Thumb({ m }: { m: MediaItem }) {
   if (m.mime?.startsWith("image/")) {
@@ -214,19 +217,36 @@ function EditMedia({ item, onClose, onChanged }: { item: MediaItem | null; onClo
   );
 }
 
-/** Campo de formulário que escolhe um arquivo da biblioteca. */
-export function MediaField({ label, value, onChange, kind = "image", help, folder }: { label: string; value?: string | null; onChange: (url: string) => void; kind?: MediaKind; help?: string; folder?: string }) {
+/** Campo de formulário que escolhe um arquivo da biblioteca (com ajuste de enquadramento para imagens). */
+export function MediaField({ label, value, onChange, kind = "image", help, folder, aspect = "16 / 9", fit = "cover", mobile }: {
+  label: string;
+  value?: string | null;
+  onChange: (url: string) => void;
+  kind?: MediaKind;
+  help?: string;
+  folder?: string;
+  /** Proporção onde a imagem aparece no site (ex.: "16 / 9"). */
+  aspect?: string;
+  fit?: Fit;
+  /** Mostra também a prévia vertical de celular (fundos e capas). */
+  mobile?: boolean;
+}) {
   const [open, setOpen] = useState(false);
-  const isImg = kind === "image" || (value && /\.(png|jpe?g|webp|gif|svg|avif)(\?|$)/i.test(value));
+  const [framing, setFraming] = useState(false);
+  const isImg = !!value && (kind === "image" || /\.(png|jpe?g|webp|gif|svg|avif)(\?|#|$)/i.test(value));
   return (
     <div className="adm-label">
       {label}
       <div className="flex items-center gap-3">
-        <button type="button" onClick={() => setOpen(true)} className="flex h-16 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-zinc-300 bg-zinc-50 text-xs text-zinc-400 hover:border-brand-500">
+        <button
+          type="button"
+          onClick={() => (isImg ? setFraming(true) : setOpen(true))}
+          className="flex h-16 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-zinc-300 bg-zinc-50 text-xs text-zinc-400 hover:border-brand-500"
+          title={isImg ? "Ajustar enquadramento" : "Escolher"}
+        >
           {value ? (
             isImg ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={value} alt="" className="h-full w-full object-cover" />
+              <FramedImage url={value} className={`h-full w-full ${fit === "cover" ? "object-cover" : "object-contain"}`} />
             ) : (
               <span className="px-1 text-center">arquivo ✓</span>
             )
@@ -235,8 +255,13 @@ export function MediaField({ label, value, onChange, kind = "image", help, folde
           )}
         </button>
         <div className="flex flex-col gap-1">
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             <button type="button" className="adm-btn-secondary adm-btn-sm" onClick={() => setOpen(true)}>{value ? "Trocar" : "Escolher"}</button>
+            {isImg && (
+              <button type="button" className="adm-btn-secondary adm-btn-sm" onClick={() => setFraming(true)}>
+                Ajustar{isFramed(value) ? " ✓" : ""}
+              </button>
+            )}
             {value && <button type="button" className="adm-btn-ghost adm-btn-sm text-red-600" onClick={() => onChange("")}>Remover</button>}
           </div>
           {help && <span className="adm-help">{help}</span>}
@@ -252,7 +277,22 @@ export function MediaField({ label, value, onChange, kind = "image", help, folde
           }}
         />
       </Modal>
+      {isImg && <FrameModal open={framing} url={value!} aspect={aspect} fit={fit} mobile={mobile} onClose={() => setFraming(false)} onSave={onChange} />}
     </div>
+  );
+}
+
+/** Botão compacto "Ajustar" para imagens em listas (galeria, logos). */
+export function FrameButton({ url, onChange, aspect = "1 / 1", fit = "cover" }: { url: string; onChange: (url: string) => void; aspect?: string; fit?: Fit }) {
+  const [open, setOpen] = useState(false);
+  if (!cleanSrc(url)) return null;
+  return (
+    <>
+      <button type="button" className="adm-btn-secondary adm-btn-sm shrink-0" onClick={() => setOpen(true)} title="Ajustar enquadramento">
+        Ajustar{isFramed(url) ? " ✓" : ""}
+      </button>
+      <FrameModal open={open} url={url} aspect={aspect} fit={fit} onClose={() => setOpen(false)} onSave={onChange} />
+    </>
   );
 }
 
