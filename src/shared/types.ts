@@ -58,7 +58,7 @@ export interface CountdownProps { target?: string; useFestival?: boolean; label?
 export interface FaqProps { items: { q: string; a: string }[] }
 export interface LogosProps { title?: string; items: { url: string; name?: string; link?: string }[]; grayscale?: boolean }
 export interface SpacerProps { size: "sm" | "md" | "lg" }
-export interface DividerProps { style: "line" | "dots" | "flower" }
+export interface DividerProps { style: "line" | "dots" | "flower" } // "flower" = ícone da marca
 
 export type BlockMap = {
   heading: HeadingProps;
@@ -82,6 +82,8 @@ export type Block<T extends BlockType = BlockType> = { [K in T]: { id: string; t
 
 // ---------- Configurações ----------
 export interface Brand {
+  /** Ícone da marca (PNG sem fundo) usado como símbolo em vários pontos do site. */
+  icon_url?: string;
   logo_url?: string;
   logo_light_url?: string;
   favicon_url?: string;

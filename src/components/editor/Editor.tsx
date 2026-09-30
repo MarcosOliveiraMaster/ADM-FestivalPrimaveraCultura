@@ -8,6 +8,7 @@ import { googleFontsHref, themeCss } from "@/shared/theme";
 import { currentTime, formatDateTime } from "@/shared/format";
 import { SectionView } from "@/shared/render/PageRenderer";
 import { BlockView } from "@/shared/render/BlockView";
+import { BrandIcon } from "@/shared/render/BrandIcon";
 import { StatusBadge } from "../StatusBadge";
 import { Modal } from "../Modal";
 import { Structure } from "./Structure";
@@ -360,7 +361,7 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
             <div className="@container fp-page min-h-[60vh]">
               {content.sections.length === 0 && (
                 <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-10 text-center text-zinc-500">
-                  <div className="text-4xl">✿</div>
+                  <BrandIcon url={settings.brand.icon_url} className="h-12" />
                   <p>Esta página está vazia.</p>
                   <button type="button" className="adm-btn-primary" onClick={() => setAddSectionAt(0)}>Adicionar a primeira seção</button>
                 </div>

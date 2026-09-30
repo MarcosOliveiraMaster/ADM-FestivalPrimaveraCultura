@@ -36,6 +36,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
   const s = settingsRes.data;
   const checklist = [
     { done: !!s?.brand?.logo_url, label: "Enviar a logo", href: "/configuracoes?aba=identidade" },
+    { done: !!s?.brand?.icon_url, label: "Enviar o ícone da marca (PNG sem fundo)", href: "/configuracoes?aba=identidade" },
     { done: !!s?.brand?.hero_cover_url, label: "Enviar a capa da página inicial", href: "/configuracoes?aba=identidade" },
     { done: !!s?.starts_at, label: "Definir datas do festival", href: "/configuracoes?aba=geral" },
     { done: !!s?.location, label: "Definir o local", href: "/configuracoes?aba=geral" },
@@ -43,7 +44,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
   ];
   return (
     <>
-      <PageHeader title={`Olá, ${profile.full_name?.split(" ")[0] || "equipe"}! 🌸`} description="Resumo do Festival da Primavera." actions={<a href="/paginas" className="adm-btn-primary"><Plus size={16} /> Nova página</a>} />
+      <PageHeader title={`Olá, ${profile.full_name?.split(" ")[0] || "equipe"}!`} description="Resumo do Festival da Primavera." actions={<a href="/paginas" className="adm-btn-primary"><Plus size={16} /> Nova página</a>} />
       <Container className="flex flex-col gap-6">
         {erro === "permissao" && <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">Essa área é só para administradores.</p>}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

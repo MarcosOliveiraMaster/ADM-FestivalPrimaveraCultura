@@ -6,9 +6,40 @@ export const DEFAULT_THEME: Required<Pick<Theme, "primary" | "secondary" | "acce
   accent: "#d9577a",
   background: "#fbf8f2",
   text: "#1f2a24",
-  fontHeading: "Fraunces",
-  fontBody: "Inter",
+  fontHeading: "Arial",
+  fontBody: "Arial",
 };
+
+export interface FontOption {
+  name: string;
+  /** Pilha CSS completa (fontes de sistema) ou null para usar "Nome" + reserva. */
+  stack?: string;
+  /** Parâmetro "family=" do Google Fonts; null = fonte do sistema. */
+  google: string | null;
+  headingWeight: number;
+  use: "títulos e textos" | "títulos";
+  note: string;
+}
+
+/** Fontes selecionadas para o festival (Arial é a padrão). */
+export const FONT_CATALOG: FontOption[] = [
+  { name: "Arial", stack: 'Arial, "Helvetica Neue", Helvetica, sans-serif', google: null, headingWeight: 700, use: "títulos e textos", note: "Padrão atual. Neutra, universal e carrega na hora (já vem instalada em todo aparelho)." },
+  { name: "Bricolage Grotesque", google: "Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800", headingWeight: 800, use: "títulos e textos", note: "Grotesca com traços irregulares, cara de cartaz de evento cultural. Tem personalidade sem perder a leitura." },
+  { name: "Instrument Serif", google: "Instrument+Serif:ital@0;1", headingWeight: 400, use: "títulos", note: "Serifa editorial condensada, usada em revistas e museus. Linda em títulos grandes — combine com Arial ou Archivo nos textos." },
+  { name: "Syne", google: "Syne:wght@400;600;700;800", headingWeight: 700, use: "títulos", note: "Criada para o centro de arte Synesthésies (Paris). Ousada e artística, ideal para títulos." },
+  { name: "Cormorant Garamond", google: "Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400", headingWeight: 600, use: "títulos e textos", note: "Garamond clássica e delicada, conversa com flores e primavera. Use em tamanhos médios e grandes." },
+  { name: "Archivo", google: "Archivo:wght@400;600;700;800", headingWeight: 700, use: "títulos e textos", note: "Grotesca robusta, de origem gráfica argentina. Excelente legibilidade para textos, programação e formulários." },
+];
+
+export function findFont(name?: string) {
+  return FONT_CATALOG.find((f) => f.name.toLowerCase() === (name ?? "").toLowerCase());
+}
+
+function fontStack(name: string, fallback: string) {
+  const f = findFont(name);
+  if (f?.stack) return f.stack;
+  return `"${name.replace(/"/g, "")}", ${fallback}`;
+}
 
 export const DEFAULT_SETTINGS: SiteSettings = {
   festival_name: "Festival da Primavera",
@@ -40,19 +71,29 @@ export function themeCss(theme: Theme | undefined, scope = ":root") {
   const faces: string[] = [];
   if (t.fontHeadingUrl) faces.push(`@font-face{font-family:"FestivalHeading";src:url("${t.fontHeadingUrl}");font-display:swap}`);
   if (t.fontBodyUrl) faces.push(`@font-face{font-family:"FestivalBody";src:url("${t.fontBodyUrl}");font-display:swap}`);
-  const head = t.fontHeadingUrl ? `"FestivalHeading"` : `"${t.fontHeading}"`;
-  const body = t.fontBodyUrl ? `"FestivalBody"` : `"${t.fontBody}"`;
-  return `${faces.join("")}${scope}{--fp-primary:${t.primary};--fp-secondary:${t.secondary};--fp-accent:${t.accent};--fp-bg:${t.background};--fp-text:${t.text};--fp-font-heading:${head},Georgia,serif;--fp-font-body:${body},system-ui,sans-serif}`;
+  const head = t.fontHeadingUrl ? `"FestivalHeading", Arial, sans-serif` : fontStack(t.fontHeading, "Arial, sans-serif");
+  const body = t.fontBodyUrl ? `"FestivalBody", Arial, sans-serif` : fontStack(t.fontBody, "Arial, sans-serif");
+  const weight = t.fontHeadingUrl ? 700 : findFont(t.fontHeading)?.headingWeight ?? 700;
+  return `${faces.join("")}${scope}{--fp-primary:${t.primary};--fp-secondary:${t.secondary};--fp-accent:${t.accent};--fp-bg:${t.background};--fp-text:${t.text};--fp-font-heading:${head};--fp-font-body:${body};--fp-heading-weight:${weight}}`;
 }
 
-export function googleFontsHref(theme: Theme | undefined) {
+/** Link do Google Fonts para as fontes escolhidas (fontes do sistema e arquivos enviados não precisam). */
+export function googleFontsHref(theme: Theme | undefined, extra: string[] = []) {
   const t = resolveTheme(theme);
-  const fams = new Set<string>();
-  if (!t.fontHeadingUrl && t.fontHeading) fams.add(t.fontHeading);
-  if (!t.fontBodyUrl && t.fontBody) fams.add(t.fontBody);
-  if (!fams.size) return null;
-  const q = [...fams].map((f) => `family=${encodeURIComponent(f).replace(/%20/g, "+")}:wght@400;600;700`).join("&");
-  return `https://fonts.googleapis.com/css2?${q}&display=swap`;
+  const names = new Set<string>(extra);
+  if (!t.fontHeadingUrl && t.fontHeading) names.add(t.fontHeading);
+  if (!t.fontBodyUrl && t.fontBody) names.add(t.fontBody);
+  const params: string[] = [];
+  for (const n of names) {
+    const f = findFont(n);
+    if (f) {
+      if (f.google) params.push(`family=${f.google}`);
+    } else if (n.trim()) {
+      params.push(`family=${encodeURIComponent(n.trim()).replace(/%20/g, "+")}`);
+    }
+  }
+  if (!params.length) return null;
+  return `https://fonts.googleapis.com/css2?${params.join("&")}&display=swap`;
 }
 
 export function mergeSettings(row: Partial<SiteSettings> | null | undefined): SiteSettings {

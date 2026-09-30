@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
 import type { EventSummary, FormProps } from "../types";
+import { BrandIcon } from "./BrandIcon";
 
-export function InterestForm({ props: p, pageId, preview, events }: { props: FormProps; pageId?: string; preview?: boolean; events: EventSummary[] }) {
+export function InterestForm({ props: p, pageId, preview, events, iconUrl }: { props: FormProps; pageId?: string; preview?: boolean; events: EventSummary[]; iconUrl?: string }) {
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const options = p.interestOptions?.length ? p.interestOptions : events.map((e) => e.title);
@@ -48,7 +49,7 @@ export function InterestForm({ props: p, pageId, preview, events }: { props: For
   if (state === "done")
     return (
       <div className="fp-card text-center">
-        <div className="text-4xl">🌸</div>
+        <BrandIcon url={iconUrl} className="mx-auto h-14" />
         <p className="fp-heading fp-h3 mt-2">{p.successMessage || "Obrigado!"}</p>
       </div>
     );

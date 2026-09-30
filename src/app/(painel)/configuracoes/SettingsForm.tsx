@@ -3,7 +3,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import type { NavItem, SiteSettings } from "@/shared/types";
-import { DEFAULT_THEME, googleFontsHref, themeCss } from "@/shared/theme";
+import { DEFAULT_THEME, FONT_CATALOG, findFont, googleFontsHref, themeCss } from "@/shared/theme";
+import { BrandIcon } from "@/shared/render/BrandIcon";
 import { MediaField } from "@/components/MediaLibrary";
 import { ColorInput, DateTime, Text } from "@/components/editor/fields";
 import { updateSettings } from "./actions";
@@ -17,7 +18,6 @@ const TABS = [
   ["privacidade", "Privacidade"],
 ] as const;
 
-const FONT_SUGGESTIONS = ["Fraunces", "Playfair Display", "DM Serif Display", "Lora", "Poppins", "Montserrat", "Inter", "Nunito", "Work Sans", "Quicksand", "Caveat", "Baloo 2"];
 
 export function SettingsForm({ initial, tab: initialTab, pages, siteUrl }: { initial: SiteSettings; tab: string; pages: { title: string; slug: string; kind: string }[]; siteUrl: string }) {
   const router = useRouter();
@@ -45,7 +45,7 @@ export function SettingsForm({ initial, tab: initialTab, pages, siteUrl }: { ini
     });
   }
 
-  const fonts = googleFontsHref(s.theme);
+  const fonts = googleFontsHref(s.theme, FONT_CATALOG.map((f) => f.name));
 
   return (
     <div className="flex flex-col lg:flex-row">
@@ -57,7 +57,7 @@ export function SettingsForm({ initial, tab: initialTab, pages, siteUrl }: { ini
         ))}
       </nav>
       <div className="min-w-0 flex-1 px-6 py-6 lg:px-8">
-        <div className="adm-card max-w-3xl p-6">
+        <div className={`adm-card p-6 ${tab === "cores" ? "max-w-5xl" : "max-w-3xl"}`}>
           {tab === "geral" && (
             <div className="flex flex-col gap-4">
               <Text label="Nome do festival" value={s.festival_name} onChange={(v) => set({ festival_name: v })} />
@@ -74,10 +74,19 @@ export function SettingsForm({ initial, tab: initialTab, pages, siteUrl }: { ini
           {tab === "identidade" && (
             <div className="flex flex-col gap-5">
               <p className="text-sm text-zinc-500">Enquanto um espaço estiver vazio, o site usa um visual provisório neutro. Envie os arquivos quando a identidade estiver pronta.</p>
+              <div className="rounded-xl border border-brand-100 bg-brand-50/50 p-4">
+                <MediaField
+                  label="Ícone da marca"
+                  value={s.brand.icon_url}
+                  onChange={(v) => brand("icon_url", v)}
+                  help="PNG sem fundo (ou SVG), quadrado, 512×512 ou maior. Aparece ao lado do nome no menu e no rodapé, nos divisores, nos cards de eventos sem capa, na confirmação do formulário e no login do painel. Também vira o ícone da aba se não houver favicon."
+                  folder="identidade"
+                />
+              </div>
               <div className="grid gap-5 sm:grid-cols-2">
                 <MediaField label="Logo principal" value={s.brand.logo_url} onChange={(v) => brand("logo_url", v)} help="SVG ou PNG transparente. Aparece no menu." folder="identidade" />
                 <MediaField label="Logo versão clara" value={s.brand.logo_light_url} onChange={(v) => brand("logo_light_url", v)} help="Para fundos escuros e rodapé." folder="identidade" />
-                <MediaField label="Ícone / favicon" value={s.brand.favicon_url} onChange={(v) => brand("favicon_url", v)} help="PNG quadrado 512×512." folder="identidade" />
+                <MediaField label="Ícone / favicon" value={s.brand.favicon_url} onChange={(v) => brand("favicon_url", v)} help="PNG quadrado 512×512. Vazio = usa o ícone da marca." folder="identidade" />
                 <MediaField label="Imagem de compartilhamento" value={s.brand.og_image_url} onChange={(v) => brand("og_image_url", v)} help="1200×630 — prévia no WhatsApp/Instagram." folder="identidade" />
                 <MediaField label="Capa da landing (hero)" value={s.brand.hero_cover_url} onChange={(v) => brand("hero_cover_url", v)} help="1920×1080. Usada nas seções com fundo “Imagem” sem arquivo próprio." folder="identidade" />
                 <MediaField label="Capa padrão de evento" value={s.brand.event_cover_url} onChange={(v) => brand("event_cover_url", v)} help="1600×900. Para eventos sem capa própria." folder="identidade" />
@@ -86,7 +95,7 @@ export function SettingsForm({ initial, tab: initialTab, pages, siteUrl }: { ini
           )}
 
           {tab === "cores" && (
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-2">
               <div className="flex flex-col gap-4">
                 <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Paleta</div>
                 <ColorInput label="Cor primária" value={s.theme.primary} onChange={(v) => theme("primary", v)} placeholder={DEFAULT_THEME.primary} />
@@ -94,12 +103,10 @@ export function SettingsForm({ initial, tab: initialTab, pages, siteUrl }: { ini
                 <ColorInput label="Cor de destaque" value={s.theme.accent} onChange={(v) => theme("accent", v)} placeholder={DEFAULT_THEME.accent} />
                 <ColorInput label="Fundo" value={s.theme.background} onChange={(v) => theme("background", v)} placeholder={DEFAULT_THEME.background} />
                 <ColorInput label="Texto" value={s.theme.text} onChange={(v) => theme("text", v)} placeholder={DEFAULT_THEME.text} />
-                <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Fontes</div>
-                <datalist id="fonts">{FONT_SUGGESTIONS.map((f) => <option key={f} value={f} />)}</datalist>
-                <label className="adm-label">Fonte dos títulos (Google Fonts)<input list="fonts" value={s.theme.fontHeading ?? ""} onChange={(e) => theme("fontHeading", e.target.value)} placeholder={DEFAULT_THEME.fontHeading} className="adm-input" /></label>
-                <MediaField label="…ou envie o arquivo da fonte dos títulos" kind="font" value={s.theme.fontHeadingUrl} onChange={(v) => theme("fontHeadingUrl", v)} help=".woff2 recomendado. Substitui a fonte do Google." folder="fontes" />
-                <label className="adm-label">Fonte dos textos (Google Fonts)<input list="fonts" value={s.theme.fontBody ?? ""} onChange={(e) => theme("fontBody", e.target.value)} placeholder={DEFAULT_THEME.fontBody} className="adm-input" /></label>
-                <MediaField label="…ou envie o arquivo da fonte dos textos" kind="font" value={s.theme.fontBodyUrl} onChange={(v) => theme("fontBodyUrl", v)} folder="fontes" />
+              </div>
+              <div className="flex flex-col gap-6 lg:row-span-2">
+                <FontPicker label="Fonte dos títulos" value={s.theme.fontHeading} fallback={DEFAULT_THEME.fontHeading} fileUrl={s.theme.fontHeadingUrl} onChange={(v) => theme("fontHeading", v)} onFile={(v) => theme("fontHeadingUrl", v)} />
+                <FontPicker label="Fonte dos textos" value={s.theme.fontBody} fallback={DEFAULT_THEME.fontBody} fileUrl={s.theme.fontBodyUrl} onChange={(v) => theme("fontBody", v)} onFile={(v) => theme("fontBodyUrl", v)} bodyOnly />
               </div>
               <div>
                 <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">Prévia</div>
@@ -109,7 +116,7 @@ export function SettingsForm({ initial, tab: initialTab, pages, siteUrl }: { ini
                   <div className="fp-page">
                     <div className="fp-on-dark p-6" style={{ background: "linear-gradient(135deg, var(--fp-primary), var(--fp-accent))" }}>
                       <div className="fp-label">Festival</div>
-                      <div className="fp-heading text-3xl">{s.festival_name}</div>
+                      <div className="fp-heading flex items-center gap-2 text-3xl"><BrandIcon url={s.brand.icon_url} className="h-9" /> {s.festival_name}</div>
                       <button type="button" className="fp-btn fp-btn-primary mt-4">Quero participar</button>
                     </div>
                     <div className="flex flex-col gap-3 p-6">
@@ -119,7 +126,11 @@ export function SettingsForm({ initial, tab: initialTab, pages, siteUrl }: { ini
                         <span className="fp-btn fp-btn-secondary !px-3 !py-1.5 text-sm">Secundário</span>
                         <span className="fp-btn fp-btn-outline !px-3 !py-1.5 text-sm">Contorno</span>
                       </div>
-                      <div className="fp-divider-flower">✿ ✿ ✿</div>
+                      {s.brand.icon_url ? (
+                        <div className="fp-divider-icons"><BrandIcon url={s.brand.icon_url} /><BrandIcon url={s.brand.icon_url} /><BrandIcon url={s.brand.icon_url} /></div>
+                      ) : (
+                        <div className="fp-divider-flower">• • •</div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -199,6 +210,52 @@ function NavEditor({ nav, onChange, pages }: { nav: NavItem[]; onChange: (n: Nav
         <option value="/#contato" />
       </datalist>
       <button type="button" className="adm-btn-secondary adm-btn-sm self-start" onClick={() => onChange([...nav, { label: "Novo item", href: "/", visible: true }])}><Plus size={14} /> Adicionar item</button>
+    </div>
+  );
+}
+
+function FontPicker({ label, value, fallback, fileUrl, onChange, onFile, bodyOnly }: { label: string; value?: string; fallback: string; fileUrl?: string; onChange: (v: string) => void; onFile: (v: string) => void; bodyOnly?: boolean }) {
+  const current = value || fallback;
+  const inCatalog = !!findFont(current);
+  const [custom, setCustom] = useState(!inCatalog);
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{label}</div>
+      {fileUrl && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">Um arquivo de fonte enviado está sendo usado. Remova-o abaixo para voltar a escolher da lista.</p>}
+      <div className="grid gap-2">
+        {FONT_CATALOG.map((f) => {
+          const selected = !custom && current.toLowerCase() === f.name.toLowerCase();
+          const warn = bodyOnly && f.use === "títulos";
+          return (
+            <button
+              type="button"
+              key={f.name}
+              onClick={() => {
+                setCustom(false);
+                onChange(f.name === fallback ? "" : f.name);
+              }}
+              className={`rounded-lg border p-3 text-left transition ${selected ? "border-brand-500 bg-brand-50 ring-2 ring-brand-500/20" : "border-zinc-200 hover:border-zinc-400"}`}
+            >
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-xl leading-tight" style={{ fontFamily: f.stack ?? `"${f.name}", Arial, sans-serif`, fontWeight: bodyOnly ? 400 : f.headingWeight }}>
+                  {bodyOnly ? "Música, arte e cultura na primavera" : "Festival da Primavera"}
+                </span>
+                {f.name === "Arial" && <span className="adm-badge shrink-0 bg-brand-100 text-brand-700">padrão</span>}
+              </div>
+              <div className="mt-1 text-xs font-medium text-zinc-700">{f.name} <span className="font-normal text-zinc-500">· indicada para {f.use}</span></div>
+              <div className="text-xs text-zinc-500">{f.note}</div>
+              {warn && selected && <div className="mt-1 text-xs text-amber-700">Essa fonte foi pensada para títulos; em textos longos pode cansar a leitura.</div>}
+            </button>
+          );
+        })}
+        <button type="button" onClick={() => setCustom(true)} className={`rounded-lg border p-3 text-left text-sm ${custom ? "border-brand-500 bg-brand-50" : "border-dashed border-zinc-300 text-zinc-600 hover:border-zinc-400"}`}>
+          Outra fonte do Google Fonts…
+        </button>
+        {custom && (
+          <input value={value ?? ""} onChange={(e) => onChange(e.target.value)} placeholder="Nome exato, ex.: Space Mono" className="adm-input" autoFocus />
+        )}
+      </div>
+      <MediaField label="…ou envie o arquivo da fonte" kind="font" value={fileUrl} onChange={onFile} help=".woff2 recomendado. Tem prioridade sobre a escolha acima." folder="fontes" />
     </div>
   );
 }

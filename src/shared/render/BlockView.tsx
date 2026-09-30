@@ -4,6 +4,7 @@ import { cleanHtml } from "./sanitize";
 import { Countdown } from "./Countdown";
 import { Gallery } from "./Gallery";
 import { InterestForm } from "./InterestForm";
+import { BrandIcon } from "./BrandIcon";
 
 const TXT_ALIGN = { left: "text-left", center: "text-center", right: "text-right" } as const;
 const JUSTIFY = { left: "justify-start", center: "justify-center", right: "justify-end" } as const;
@@ -117,7 +118,7 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
       );
     }
     case "form":
-      return <InterestForm props={block.props} pageId={ctx.pageId} preview={ctx.mode === "preview"} events={ctx.events} />;
+      return <InterestForm props={block.props} pageId={ctx.pageId} preview={ctx.mode === "preview"} events={ctx.events} iconUrl={ctx.settings.brand.icon_url} />;
     case "schedule": {
       const p = block.props;
       const now = ctx.now ?? 0;
@@ -132,7 +133,7 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
           ) : (
             <div className="grid gap-5 text-left @xl:grid-cols-2 @4xl:grid-cols-3">
               {list.map((e) => (
-                <EventCard key={e.id} e={e} fallback={ctx.settings.brand.event_cover_url} />
+                <EventCard key={e.id} e={e} fallback={ctx.settings.brand.event_cover_url} icon={ctx.settings.brand.icon_url} />
               ))}
             </div>
           )}
@@ -143,7 +144,7 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
       const p = block.props;
       const target = p.useFestival ? ctx.settings.starts_at : p.target;
       if (!target) return ctx.mode === "preview" ? <Placeholder ctx={ctx} label="Contagem regressiva — aparece quando a data for definida" /> : null;
-      return <Countdown target={target} label={p.label} />;
+      return <Countdown target={target} label={p.label} iconUrl={ctx.settings.brand.icon_url} />;
     }
     case "faq":
       return (
@@ -179,19 +180,29 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
     case "spacer":
       return <div aria-hidden className={{ sm: "h-4", md: "h-10", lg: "h-20" }[block.props.size]} />;
     case "divider":
-      return block.props.style === "flower" ? (
-        <div aria-hidden className="fp-divider-flower">✿ ✿ ✿</div>
-      ) : block.props.style === "dots" ? (
-        <div aria-hidden className="fp-divider-flower tracking-[0.6em]">• • •</div>
-      ) : (
+      if (block.props.style === "flower") {
+        const icon = ctx.settings.brand.icon_url;
+        if (icon)
+          return (
+            <div aria-hidden className="fp-divider-icons">
+              <BrandIcon url={icon} />
+              <BrandIcon url={icon} />
+              <BrandIcon url={icon} />
+            </div>
+          );
+        if (ctx.mode === "preview") return <div className="fp-placeholder !min-h-0 py-3">Divisor com o ícone da marca — envie o ícone em Configurações → Identidade visual</div>;
+      }
+      return block.props.style === "line" ? (
         <hr className="border-current opacity-20" />
+      ) : (
+        <div aria-hidden className="fp-divider-flower tracking-[0.6em]">• • •</div>
       );
     default:
       return null;
   }
 }
 
-export function EventCard({ e, fallback }: { e: RenderContext["events"][number]; fallback?: string }) {
+export function EventCard({ e, fallback, icon }: { e: RenderContext["events"][number]; fallback?: string; icon?: string }) {
   const cover = e.cover_url || fallback;
   return (
     <a href={`/eventos/${e.slug}`} data-track={`evento:${e.slug}`} className="fp-event-card group">
@@ -200,7 +211,9 @@ export function EventCard({ e, fallback }: { e: RenderContext["events"][number];
           // eslint-disable-next-line @next/next/no-img-element
           <img src={cover} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-4xl text-white/80" style={{ background: "linear-gradient(135deg, var(--fp-primary), var(--fp-accent))" }}>✿</div>
+          <div className="flex h-full w-full items-center justify-center" style={{ background: "linear-gradient(135deg, var(--fp-primary), var(--fp-accent))" }}>
+            <BrandIcon url={icon} className="h-16 opacity-90" />
+          </div>
         )}
       </div>
       <div className="flex flex-col gap-1 p-5">

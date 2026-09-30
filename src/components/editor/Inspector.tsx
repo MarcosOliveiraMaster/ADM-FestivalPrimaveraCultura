@@ -340,7 +340,7 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
     case "spacer":
       return <Segmented label="Altura" value={block.props.size} onChange={(v) => set({ size: v })} options={[["sm", "Pequeno"], ["md", "Médio"], ["lg", "Grande"]]} />;
     case "divider":
-      return <Segmented label="Estilo" value={block.props.style} onChange={(v) => set({ style: v })} options={[["flower", "✿ Flores"], ["dots", "• Pontos"], ["line", "— Linha"]]} />;
+      return <Segmented label="Estilo" value={block.props.style} onChange={(v) => set({ style: v })} options={[["flower", "Ícone da marca"], ["dots", "• Pontos"], ["line", "— Linha"]]} />;
     default:
       return null;
   }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { BarChart3, ExternalLink, FileText, Image as ImageIcon, Inbox, LayoutDashboard, Menu, Settings, UserCircle, Users, X } from "lucide-react";
 import { SignOutButton } from "./SignOutButton";
 import type { AppRole } from "@/shared/types";
+import { BrandIcon } from "@/shared/render/BrandIcon";
 
 const ITEMS = [
   { href: "/", label: "Painel", icon: LayoutDashboard, admin: false },
@@ -15,7 +16,7 @@ const ITEMS = [
   { href: "/usuarios", label: "Usuários", icon: Users, admin: true },
 ];
 
-export function Sidebar({ role, name, email, newCount, siteUrl }: { role: AppRole; name: string; email: string; newCount: number; siteUrl: string }) {
+export function Sidebar({ role, name, email, newCount, siteUrl, icon }: { role: AppRole; name: string; email: string; newCount: number; siteUrl: string; icon?: string }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const items = ITEMS.filter((i) => !i.admin || role === "admin");
@@ -52,7 +53,7 @@ export function Sidebar({ role, name, email, newCount, siteUrl }: { role: AppRol
   return (
     <>
       <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-zinc-200 bg-white px-4 lg:hidden">
-        <span className="font-semibold">✿ Festival da Primavera</span>
+        <span className="flex items-center gap-2 font-semibold"><BrandIcon url={icon} className="h-6" /> Festival da Primavera</span>
         <button type="button" aria-label="Menu" onClick={() => setOpen(true)}><Menu /></button>
       </div>
       {open && (
@@ -60,7 +61,7 @@ export function Sidebar({ role, name, email, newCount, siteUrl }: { role: AppRol
           <div className="absolute inset-0 bg-black/30" onClick={() => setOpen(false)} />
           <aside className="absolute inset-y-0 left-0 flex w-72 flex-col bg-white">
             <div className="flex h-14 items-center justify-between border-b px-4">
-              <span className="font-semibold">✿ Festival da Primavera</span>
+              <span className="flex items-center gap-2 font-semibold"><BrandIcon url={icon} className="h-6" /> Festival da Primavera</span>
               <button type="button" aria-label="Fechar" onClick={() => setOpen(false)}><X /></button>
             </div>
             {nav}
@@ -70,7 +71,7 @@ export function Sidebar({ role, name, email, newCount, siteUrl }: { role: AppRol
       )}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-zinc-200 bg-white lg:flex">
         <div className="flex h-16 items-center gap-2 border-b border-zinc-200 px-5">
-          <span className="text-2xl text-brand-500">✿</span>
+          <BrandIcon url={icon} className="h-8" />
           <div className="leading-tight">
             <div className="text-sm font-semibold">Festival da Primavera</div>
             <div className="text-xs text-zinc-500">Painel administrativo</div>
