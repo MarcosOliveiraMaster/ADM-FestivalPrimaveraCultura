@@ -95,6 +95,7 @@ As permissões são aplicadas **no banco** (RLS), não só na tela.
 - **Largura**: contida ou tela cheia · **Espaçamento**: P / M / G · **Alinhamento** vertical e horizontal.
 - **Âncora** (ex.: `#programacao`) para links do menu.
 - Ocultar no celular ou no computador.
+- **Divisor em onda** no topo e/ou na base, com cor escolhida e opção de movimento lento.
 
 **Blocos** (vão dentro das colunas):
 
@@ -104,16 +105,17 @@ As permissões são aplicadas **no banco** (RLS), não só na tela.
 | Texto rico | Negrito, itálico, sublinhado, listas, citações, links, cores, tamanhos, alinhamento |
 | Imagem | Upload ou biblioteca, legenda, link opcional, recorte/proporção |
 | Galeria / carrossel | Várias imagens em grade ou slides, com ampliação ao clicar |
-| Vídeo | Colar link do YouTube, Vimeo ou Instagram e incorporar automaticamente |
+| Vídeo | Colar link do YouTube, Vimeo ou Instagram e incorporar automaticamente; opção de reprodução automática (sempre sem som, regra dos navegadores) e loop |
 | Botão | Texto + link, estilos (primário/secundário/contorno), abrir em nova aba |
 | Lista de links | Links com **título** e descrição opcional (ex.: "Ingressos", "Regulamento PDF") |
 | Data, hora e local | Agenda + endereço + mapa do Google + "adicionar à agenda" |
 | Formulário de interesse | Formulário vinculado à página (ver §4) |
 | Programação automática | Lista os próximos eventos publicados |
 | Contagem regressiva | Até uma data escolhida |
-| Perguntas frequentes | Perguntas e respostas expansíveis |
+| Perguntas frequentes (FAQ) | Lista de perguntas e respostas escritas no painel; expansíveis, com opção de primeira aberta e de abrir uma por vez; gera dados estruturados de FAQ para o Google |
+| Notícias | Cards só com título, subtítulo e imagem (e veículo/data opcionais); o clique abre a matéria externa em nova aba; primeira notícia em destaque, estilo portal |
 | Logos / patrocinadores | Grade de logos com links |
-| Espaçador / divisor | Respiro visual |
+| Espaçador / divisor | Respiro visual (linha, pontos, ícone da marca ou onda) |
 
 Comportamento do editor:
 - Pré-visualização ao vivo em **desktop / tablet / celular**.
@@ -223,3 +225,42 @@ Regras de acesso (RLS): visitante anônimo **lê** páginas publicadas e **inser
 - [ ] Domínio próprio
 
 **Fora do protótipo (próximas melhorias sugeridas):** link privado de pré-visualização para pessoas sem login, “onde este arquivo é usado” na biblioteca de mídia, arrastar blocos entre colunas diferentes (hoje: seletor “mover para coluna”).
+
+---
+
+## 9. Checklist de atualizações (reunião de 05/10)
+
+**Usuários e inscrições** — exige novas tabelas e login de visitantes (a confirmar antes de alterar o banco)
+- [ ] Área de login de usuários
+- [ ] Login social (Google)
+- [ ] Área de inscrição de eventos
+- [ ] E-mail de confirmação ao receber inscrição em evento
+- [ ] Notificação no Google Calendar após inscrição
+- [ ] Área de certificados
+
+**Conteúdo**
+- [x] Área de notícias: bloco **Notícias** (título, subtítulo e imagem, com redirecionamento para link externo)
+- [ ] Galeria exclusiva (imagens e vídeos) — depende do login de visitantes
+- [x] Vídeo da edição anterior com reprodução automática: bloco **Vídeo** → “Reproduzir automaticamente” (começa sem som)
+- [x] Rodapé: link do canal da OXE (Configurações → Redes; provisório `LinkCanalOxe.com.br` até o link oficial)
+
+**Elementos de página**
+- [x] FAQ: bloco **Perguntas frequentes** com perguntas e respostas editáveis no painel
+
+**Visual e layout**
+- [ ] Trocar fotos de capa (apresentar opções)
+- [x] Divisores entre seções: **onda** na seção (topo/base) ou bloco Divisor → Onda
+- [ ] Cor própria para cada página
+- [x] Efeito “onda” (com movimento opcional)
+- [ ] Referência visual: site “Cada Minuto” (Ricardo Mota)
+
+**SEO**
+- [ ] Editar SEO do site (ficou com “?”, precisa confirmar) — campos por página já existem em Configurações da página; ainda sem domínio próprio
+
+**Fluxo de aprovação**
+1. [ ] Definir funções
+2. [ ] Aplicar copy
+3. [ ] Reunião de aprovação
+4. [ ] Definir novas mídias
+
+> Observação: navegadores só reproduzem vídeo automaticamente se ele estiver sem som; por isso o vídeo da edição anterior inicia mudo.

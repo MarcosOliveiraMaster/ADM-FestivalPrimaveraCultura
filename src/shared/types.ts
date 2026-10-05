@@ -22,6 +22,12 @@ export interface SectionStyle {
   anchor?: string;
   hideOn: "none" | "mobile" | "desktop";
   minHeight?: "auto" | "half" | "screen";
+  /** Divisor em forma de onda no topo e/ou na base da seção. */
+  wave?: "none" | "top" | "bottom" | "both";
+  /** Cor da onda (normalmente a cor de fundo da seção vizinha). Vazio = fundo do site. */
+  waveColor?: string;
+  /** Onda em movimento lento. */
+  waveAnimate?: boolean;
 }
 
 export interface Section {
@@ -41,7 +47,13 @@ export interface HeadingProps { text: string; level: 1 | 2 | 3; align?: "left" |
 export interface RichTextProps { html: string }
 export interface ImageProps { url: string; alt?: string; caption?: string; link?: string; ratio?: "auto" | "1/1" | "4/3" | "16/9" | "3/4"; rounded?: boolean }
 export interface GalleryProps { images: { url: string; alt?: string }[]; mode: "grid" | "carousel"; columns: 2 | 3 | 4 }
-export interface VideoProps { url: string; caption?: string }
+export interface VideoProps {
+  url: string;
+  caption?: string;
+  /** Reprodução automática. Os navegadores só permitem autoplay sem som, então o vídeo começa mudo. */
+  autoplay?: boolean;
+  loop?: boolean;
+}
 export interface ButtonProps { label: string; href: string; variant: "primary" | "secondary" | "outline"; newTab?: boolean; align?: "left" | "center" | "right"; size?: "md" | "lg" }
 export interface LinksProps { items: { title: string; url: string; description?: string }[] }
 export interface EventInfoProps { startsAt?: string; endsAt?: string; location?: string; address?: string; showMap?: boolean; showCalendar?: boolean; useFestival?: boolean }
@@ -55,10 +67,19 @@ export interface FormProps {
 }
 export interface ScheduleProps { title?: string; limit?: number; showPast?: boolean }
 export interface CountdownProps { target?: string; useFestival?: boolean; label?: string }
-export interface FaqProps { items: { q: string; a: string }[] }
+export interface FaqProps {
+  items: { q: string; a: string }[];
+  /** Deixa a primeira pergunta aberta. */
+  openFirst?: boolean;
+  /** Ao abrir uma pergunta, fecha as outras. */
+  single?: boolean;
+}
+export interface NewsItem { title: string; subtitle?: string; image?: string; url: string; source?: string; date?: string }
+/** Notícias: só título, subtítulo e imagem; o clique leva ao link externo da matéria. */
+export interface NewsProps { items: NewsItem[]; columns: 2 | 3; featured?: boolean }
 export interface LogosProps { title?: string; items: { url: string; name?: string; link?: string }[]; grayscale?: boolean }
 export interface SpacerProps { size: "sm" | "md" | "lg" }
-export interface DividerProps { style: "line" | "dots" | "flower" } // "flower" = ícone da marca
+export interface DividerProps { style: "line" | "dots" | "flower" | "wave" } // "flower" = ícone da marca
 
 export type BlockMap = {
   heading: HeadingProps;
@@ -73,6 +94,7 @@ export type BlockMap = {
   schedule: ScheduleProps;
   countdown: CountdownProps;
   faq: FaqProps;
+  news: NewsProps;
   logos: LogosProps;
   spacer: SpacerProps;
   divider: DividerProps;
@@ -114,7 +136,7 @@ export interface SiteSettings {
   theme: Theme;
   nav: NavItem[];
   footer: { text?: string; address?: string; email?: string; phone?: string };
-  social: { instagram?: string; facebook?: string; youtube?: string; tiktok?: string; whatsapp?: string };
+  social: { instagram?: string; facebook?: string; youtube?: string; tiktok?: string; whatsapp?: string; oxe?: string };
   privacy_text: string | null;
 }
 

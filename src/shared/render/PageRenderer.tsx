@@ -1,6 +1,7 @@
 import type { Block, PageContent, RenderContext, Section } from "../types";
 import { BlockView } from "./BlockView";
 import { FramedImage } from "./FramedImage";
+import { Wave } from "./Wave";
 import { frameStyle, parseImage } from "../image";
 
 const GRID: Record<Section["layout"], string> = {
@@ -46,6 +47,8 @@ export function SectionView({ section, ctx, renderBlock }: { section: Section; c
       {(s.bgType === "image" || s.bgType === "video") && (
         <div className="absolute inset-0 -z-10 bg-black" style={{ opacity: (s.overlay ?? 40) / 100 }} />
       )}
+      {(s.wave === "top" || s.wave === "both") && <Wave color={s.waveColor} animate={s.waveAnimate} flip className="fp-wave-top" />}
+      {(s.wave === "bottom" || s.wave === "both") && <Wave color={s.waveColor} animate={s.waveAnimate} className="fp-wave-bottom" />}
       <div className={`w-full ${PAD[s.padding]} ${s.width === "full" ? "px-4 @2xl:px-8" : "mx-auto max-w-6xl px-5 @2xl:px-8"} ${ALIGN[s.align]}`}>
         <div className={`grid gap-8 @2xl:gap-12 ${GRID[section.layout]} ${VALIGN[s.valign]}`}>
           {section.columns.map((col, ci) => (

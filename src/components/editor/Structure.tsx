@@ -32,6 +32,7 @@ function blockSummary(b: Block) {
     case "gallery": return `${b.props.images.length} imagens`;
     case "links": return `${b.props.items.length} links`;
     case "faq": return `${b.props.items.length} perguntas`;
+    case "news": return `${b.props.items.length} notícias`;
     case "logos": return `${b.props.items.length} logos`;
     case "form": return b.props.title ?? "";
     case "schedule": return b.props.title ?? "";

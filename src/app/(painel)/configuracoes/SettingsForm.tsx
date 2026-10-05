@@ -152,6 +152,7 @@ export function SettingsForm({ initial, tab: initialTab, pages, siteUrl }: { ini
               <Text label="Endereço" value={s.footer.address} onChange={(v) => set({ footer: { ...s.footer, address: v } })} />
               <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Redes sociais (links completos)</div>
               <div className="grid gap-4 sm:grid-cols-2">
+                <Text label="Canal da OXE (rodapé)" value={s.social.oxe} onChange={(v) => set({ social: { ...s.social, oxe: v || undefined } })} placeholder="https://LinkCanalOxe.com.br" help="Vazio = mostra o link provisório LinkCanalOxe.com.br." />
                 {(["instagram", "facebook", "youtube", "tiktok", "whatsapp"] as const).map((k) => (
                   <Text key={k} label={k[0].toUpperCase() + k.slice(1)} value={s.social[k]} onChange={(v) => set({ social: { ...s.social, [k]: v || undefined } })} placeholder={k === "whatsapp" ? "https://wa.me/55…" : `https://${k}.com/…`} />
                 ))}

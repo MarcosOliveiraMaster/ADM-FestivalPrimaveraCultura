@@ -42,6 +42,21 @@ export function videoEmbedUrl(url: string | undefined): { kind: "iframe" | "file
   return null;
 }
 
+/** Parâmetros de reprodução automática (sempre sem som) para YouTube e Vimeo. */
+export function autoplayEmbedUrl(src: string, loop = true) {
+  const yt = src.match(/youtube-nocookie\.com\/embed\/([\w-]+)/);
+  if (yt) {
+    const p = new URLSearchParams({ autoplay: "1", mute: "1", playsinline: "1", rel: "0" });
+    if (loop) {
+      p.set("loop", "1");
+      p.set("playlist", yt[1]);
+    }
+    return `${src}?${p}`;
+  }
+  if (/player\.vimeo\.com/.test(src)) return `${src}?autoplay=1&muted=1${loop ? "&loop=1" : ""}`;
+  return src;
+}
+
 export function googleCalendarUrl(title: string, start?: string | null, end?: string | null, location?: string | null) {
   if (!start) return null;
   const f = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");

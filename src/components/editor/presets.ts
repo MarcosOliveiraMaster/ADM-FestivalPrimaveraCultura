@@ -43,6 +43,7 @@ export const SECTION_PRESETS: { id: string; label: string; description: string; 
   { id: "info", label: "Data, hora e local", description: "Agenda com mapa", build: () => sec("Quando e onde", "1", { padding: "md" }, [[b("eventinfo")]]) },
   { id: "formulario", label: "Formulário de interesse", description: "Coleta contatos de interessados", build: () => sec("Formulário", "1", { padding: "lg", anchor: "contato" }, [[b("form")]]) },
   { id: "faq", label: "Perguntas frequentes", description: "Perguntas e respostas", build: () => sec("Perguntas", "1", { padding: "lg" }, [[b("heading", { text: "Perguntas frequentes" }), b("faq")]]) },
+  { id: "noticias", label: "Notícias", description: "Cards com link para matérias externas", build: () => sec("Notícias", "1", { padding: "lg" }, [[b("heading", { text: "Notícias" }), b("news")]]) },
   { id: "links", label: "Links úteis", description: "Lista de links com títulos", build: () => sec("Links", "1", { padding: "lg" }, [[b("heading", { text: "Links úteis" }), b("links")]]) },
   { id: "apoio", label: "Patrocinadores", description: "Logos de apoiadores", build: () => sec("Apoio", "1", { padding: "md", bgType: "color", bgColor: "#ffffff" }, [[b("logos")]]) },
 ];

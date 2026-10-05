@@ -1,11 +1,12 @@
 import type { Block, RenderContext } from "../types";
-import { formatDate, formatRange, googleCalendarUrl, videoEmbedUrl } from "../format";
+import { autoplayEmbedUrl, formatDate, formatRange, googleCalendarUrl, videoEmbedUrl } from "../format";
 import { cleanHtml } from "./sanitize";
 import { Countdown } from "./Countdown";
 import { Gallery } from "./Gallery";
 import { InterestForm } from "./InterestForm";
 import { BrandIcon } from "./BrandIcon";
 import { FramedImage } from "./FramedImage";
+import { Wave } from "./Wave";
 
 const TXT_ALIGN = { left: "text-left", center: "text-center", right: "text-right" } as const;
 const JUSTIFY = { left: "justify-start", center: "justify-center", right: "justify-end" } as const;
@@ -48,16 +49,20 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
       if (!block.props.images.length) return <Placeholder ctx={ctx} label="Galeria — adicione imagens" />;
       return <Gallery {...block.props} />;
     case "video": {
-      const v = videoEmbedUrl(block.props.url);
+      const p = block.props;
+      const v = videoEmbedUrl(p.url);
       if (!v) return <Placeholder ctx={ctx} label="Vídeo — cole um link do YouTube, Vimeo ou Instagram" />;
+      // Autoplay só funciona sem som (regra dos navegadores): o vídeo começa mudo.
+      const auto = !!p.autoplay;
+      const loop = p.loop ?? auto;
       return (
         <figure className="flex flex-col gap-2">
           {v.kind === "iframe" ? (
-            <iframe src={v.src} className="aspect-video w-full rounded-2xl bg-black" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen loading="lazy" title={block.props.caption || "Vídeo"} />
+            <iframe src={auto ? autoplayEmbedUrl(v.src, loop) : v.src} className="aspect-video w-full rounded-2xl bg-black" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen loading={auto ? "eager" : "lazy"} title={p.caption || "Vídeo"} />
           ) : (
-            <video src={v.src} controls className="aspect-video w-full rounded-2xl bg-black" />
+            <video src={v.src} controls autoPlay={auto} muted={auto} loop={loop} playsInline className="aspect-video w-full rounded-2xl bg-black" />
           )}
-          {block.props.caption && <figcaption className="text-sm opacity-70">{block.props.caption}</figcaption>}
+          {p.caption && <figcaption className="text-sm opacity-70">{p.caption}</figcaption>}
         </figure>
       );
     }
@@ -150,17 +155,50 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
       if (!target) return ctx.mode === "preview" ? <Placeholder ctx={ctx} label="Contagem regressiva — aparece quando a data for definida" /> : null;
       return <Countdown target={target} label={p.label} iconUrl={ctx.settings.brand.icon_url} />;
     }
-    case "faq":
+    case "faq": {
+      const p = block.props;
+      const items = p.items.filter((it) => it.q.trim());
+      if (!items.length) return <Placeholder ctx={ctx} label="Perguntas frequentes — adicione perguntas e respostas" />;
+      // Dados estruturados para o Google exibir as perguntas nos resultados de busca.
+      const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: items.filter((it) => it.a.trim()).map((it) => ({ "@type": "Question", name: it.q, acceptedAnswer: { "@type": "Answer", text: it.a } })),
+      };
       return (
         <div className="flex flex-col gap-3 text-left">
-          {block.props.items.map((it, i) => (
-            <details key={i} className="fp-faq">
+          {items.map((it, i) => (
+            <details key={i} className="fp-faq" name={p.single ? `faq-${block.id}` : undefined} open={p.openFirst && i === 0}>
               <summary>{it.q}</summary>
-              <p>{it.a}</p>
+              <div className="fp-faq-a">
+                {it.a.split(/\n\s*\n/).filter((par) => par.trim()).map((par, j) => (
+                  <p key={j}>
+                    {par.split("\n").map((line, k) => (
+                      <span key={k}>{k > 0 && <br />}{line}</span>
+                    ))}
+                  </p>
+                ))}
+              </div>
             </details>
+          ))}
+          {ctx.mode === "public" && jsonLd.mainEntity.length > 0 && (
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+          )}
+        </div>
+      );
+    }
+    case "news": {
+      const p = block.props;
+      const items = p.items.filter((n) => n.title.trim());
+      if (!items.length) return <Placeholder ctx={ctx} label="Notícias — adicione título, imagem e link" />;
+      return (
+        <div className={`grid gap-5 text-left @xl:grid-cols-2 ${p.columns === 3 ? "@4xl:grid-cols-3" : ""}`}>
+          {items.map((n, i) => (
+            <NewsCard key={i} n={n} featured={p.featured && i === 0 && items.length > 1} icon={ctx.settings.brand.icon_url} />
           ))}
         </div>
       );
+    }
     case "logos": {
       const p = block.props;
       if (!p.items.length) return <Placeholder ctx={ctx} label="Logos — adicione imagens" />;
@@ -187,6 +225,7 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
     case "spacer":
       return <div aria-hidden className={{ sm: "h-4", md: "h-10", lg: "h-20" }[block.props.size]} />;
     case "divider":
+      if (block.props.style === "wave") return <Wave className="fp-wave-inline" color="var(--fp-primary)" />;
       if (block.props.style === "flower") {
         const icon = ctx.settings.brand.icon_url;
         if (icon)
@@ -207,6 +246,41 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
     default:
       return null;
   }
+}
+
+function domain(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
+export function NewsCard({ n, featured, icon }: { n: NonNullable<Extract<Block, { type: "news" }>["props"]["items"]>[number]; featured?: boolean; icon?: string }) {
+  const source = n.source || domain(n.url);
+  return (
+    <a href={n.url || "#"} target="_blank" rel="noopener noreferrer" data-track={`noticia:${n.title}`} className={`fp-news-card group ${featured ? "fp-news-featured" : ""}`}>
+      <div className="fp-news-img overflow-hidden">
+        {n.image ? (
+          <div className="h-full w-full transition duration-500 group-hover:scale-105">
+            <FramedImage url={n.image} alt="" className="h-full w-full object-cover" />
+          </div>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center" style={{ background: "linear-gradient(135deg, var(--fp-primary), var(--fp-accent))" }}>
+            <BrandIcon url={icon} className="h-14 opacity-90" />
+          </div>
+        )}
+      </div>
+      <div className="flex flex-1 flex-col gap-2 p-5">
+        <span className="fp-heading fp-news-title">{n.title}</span>
+        {n.subtitle && <span className="opacity-75">{n.subtitle}</span>}
+        <span className="mt-auto flex justify-between gap-3 pt-2 text-sm font-semibold" style={{ color: "var(--fp-primary)" }}>
+          <span>{n.date ? formatDate(`${n.date}T12:00:00`) : ""}</span>
+          <span>{source ? `${source} ↗` : "Ler matéria ↗"}</span>
+        </span>
+      </div>
+    </a>
+  );
 }
 
 export function EventCard({ e, fallback, icon }: { e: RenderContext["events"][number]; fallback?: string; icon?: string }) {

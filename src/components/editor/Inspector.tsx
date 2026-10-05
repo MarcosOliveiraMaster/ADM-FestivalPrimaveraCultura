@@ -84,6 +84,16 @@ export function SectionInspector({ section, onChange, onLayout, onMove, onDuplic
         )}
         <Segmented label="Cor do texto" value={s.textTone} onChange={(v) => set({ textTone: v })} options={[["auto", "Automática"], ["dark", "Escura"], ["light", "Clara"]]} />
       </Group>
+      <Group title="Divisor em onda">
+        <Segmented label="Onda" value={s.wave ?? "none"} onChange={(v) => set({ wave: v })} options={[["none", "Sem"], ["top", "Topo"], ["bottom", "Base"], ["both", "Ambos"]]} />
+        {(s.wave ?? "none") !== "none" && (
+          <>
+            <ColorInput label="Cor da onda" value={s.waveColor} onChange={(v) => set({ waveColor: v })} placeholder="fundo do site" />
+            <span className="adm-help">Use a cor de fundo da seção vizinha para a onda “encaixar” entre as duas.</span>
+            <Toggle label="Onda em movimento" checked={s.waveAnimate} onChange={(v) => set({ waveAnimate: v })} />
+          </>
+        )}
+      </Group>
       <Group title="Avançado">
         <Text label="Âncora (link interno)" value={s.anchor} onChange={(v) => set({ anchor: v.replace(/[^a-z0-9-]/gi, "").toLowerCase() })} placeholder="ex.: programacao" help={s.anchor ? `Link para esta seção: #${s.anchor}` : "Permite criar links como /#programacao no menu."} />
         <Segmented label="Mostrar em" value={s.hideOn} onChange={(v) => set({ hideOn: v })} options={[["none", "Todos"], ["mobile", "Só computador"], ["desktop", "Só celular"]]} />
@@ -192,6 +202,8 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
         <>
           <Text label="Link do vídeo" value={block.props.url} onChange={(v) => set({ url: v })} placeholder="https://www.youtube.com/watch?v=…" help={block.props.url && !ok ? "⚠ Link não reconhecido. Use YouTube, Vimeo, Instagram ou um .mp4." : "Aceita YouTube, Vimeo, Instagram (post/reel) ou arquivo .mp4."} />
           <Text label="Legenda" value={block.props.caption} onChange={(v) => set({ caption: v })} />
+          <Toggle label="Reproduzir automaticamente" checked={block.props.autoplay} onChange={(v) => set({ autoplay: v })} help="Os navegadores só permitem iniciar sozinho sem som: o vídeo começa mudo e o visitante ativa o áudio no player." />
+          {block.props.autoplay && <Toggle label="Repetir em loop" checked={block.props.loop ?? true} onChange={(v) => set({ loop: v })} />}
         </>
       );
     }
@@ -296,22 +308,58 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
         </>
       );
     }
-    case "faq":
+    case "faq": {
+      const p = block.props;
       return (
-        <ListEditor
-          label="Perguntas"
-          items={block.props.items}
-          onChange={(items) => set({ items })}
-          create={() => ({ q: "Pergunta?", a: "Resposta." })}
-          addLabel="Adicionar pergunta"
-          render={(it, setIt) => (
-            <>
-              <input value={it.q} onChange={(e) => setIt({ ...it, q: e.target.value })} placeholder="Pergunta" className="adm-input font-medium" />
-              <textarea value={it.a} onChange={(e) => setIt({ ...it, a: e.target.value })} placeholder="Resposta" rows={3} className="adm-input" />
-            </>
-          )}
-        />
+        <>
+          <ListEditor
+            label={`Perguntas (${p.items.length})`}
+            items={p.items}
+            onChange={(items) => set({ items })}
+            create={() => ({ q: "", a: "" })}
+            addLabel="Adicionar pergunta"
+            render={(it, setIt) => (
+              <>
+                <input value={it.q} onChange={(e) => setIt({ ...it, q: e.target.value })} placeholder="Pergunta" className="adm-input font-medium" />
+                <textarea value={it.a} onChange={(e) => setIt({ ...it, a: e.target.value })} placeholder="Resposta" rows={4} className="adm-input" />
+              </>
+            )}
+          />
+          <span className="adm-help">Deixe uma linha em branco na resposta para separar parágrafos. As perguntas também são enviadas ao Google (dados estruturados de FAQ).</span>
+          <Toggle label="Primeira pergunta já aberta" checked={p.openFirst} onChange={(v) => set({ openFirst: v })} />
+          <Toggle label="Abrir uma pergunta por vez" checked={p.single} onChange={(v) => set({ single: v })} help="Ao abrir uma pergunta, as outras se fecham." />
+        </>
       );
+    }
+    case "news": {
+      const p = block.props;
+      return (
+        <>
+          <ListEditor
+            label={`Notícias (${p.items.length})`}
+            items={p.items}
+            onChange={(items) => set({ items })}
+            create={() => ({ title: "", subtitle: "", image: "", url: "https://", source: "" })}
+            addLabel="Adicionar notícia"
+            render={(it, setIt) => (
+              <>
+                <input value={it.title} onChange={(e) => setIt({ ...it, title: e.target.value })} placeholder="Título" className="adm-input font-medium" />
+                <textarea value={it.subtitle ?? ""} onChange={(e) => setIt({ ...it, subtitle: e.target.value })} placeholder="Subtítulo (opcional)" rows={2} className="adm-input" />
+                <input value={it.url} onChange={(e) => setIt({ ...it, url: e.target.value })} placeholder="Link da matéria (https://…)" className="adm-input" />
+                <div className="flex gap-2">
+                  <input value={it.source ?? ""} onChange={(e) => setIt({ ...it, source: e.target.value })} placeholder="Veículo (opcional)" className="adm-input" />
+                  <input type="date" value={it.date ?? ""} onChange={(e) => setIt({ ...it, date: e.target.value || undefined })} className="adm-input !w-auto" />
+                </div>
+                <MediaField label="Imagem" value={it.image} onChange={(image) => setIt({ ...it, image })} folder="noticias" aspect="16 / 10" />
+              </>
+            )}
+          />
+          <span className="adm-help">O visitante clica no card e abre a matéria no site do veículo, em nova aba.</span>
+          <Segmented label="Colunas" value={String(p.columns) as "2" | "3"} onChange={(v) => set({ columns: Number(v) })} options={[["2", "2"], ["3", "3"]]} />
+          <Toggle label="Primeira notícia em destaque" checked={p.featured} onChange={(v) => set({ featured: v })} help="Ocupa a largura toda, estilo portal de notícias." />
+        </>
+      );
+    }
     case "logos": {
       const p = block.props;
       return (
@@ -343,7 +391,7 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
     case "spacer":
       return <Segmented label="Altura" value={block.props.size} onChange={(v) => set({ size: v })} options={[["sm", "Pequeno"], ["md", "Médio"], ["lg", "Grande"]]} />;
     case "divider":
-      return <Segmented label="Estilo" value={block.props.style} onChange={(v) => set({ style: v })} options={[["flower", "Ícone da marca"], ["dots", "• Pontos"], ["line", "— Linha"]]} />;
+      return <Segmented label="Estilo" value={block.props.style} onChange={(v) => set({ style: v })} options={[["flower", "Ícone da marca"], ["wave", "〰 Onda"], ["dots", "• Pontos"], ["line", "— Linha"]]} />;
     default:
       return null;
   }
