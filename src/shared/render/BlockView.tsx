@@ -7,6 +7,7 @@ import { InterestForm } from "./InterestForm";
 import { BrandIcon } from "./BrandIcon";
 import { FramedImage } from "./FramedImage";
 import { Wave } from "./Wave";
+import { Registration } from "./Registration";
 
 const TXT_ALIGN = { left: "text-left", center: "text-center", right: "text-right" } as const;
 const JUSTIFY = { left: "justify-start", center: "justify-center", right: "justify-end" } as const;
@@ -126,6 +127,8 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
         </div>
       );
     }
+    case "registration":
+      return <Registration props={block.props} pageId={ctx.pageId} preview={ctx.mode === "preview"} event={ctx.page} />;
     case "form":
       return <InterestForm props={block.props} pageId={ctx.pageId} preview={ctx.mode === "preview"} events={ctx.events} iconUrl={ctx.settings.brand.icon_url} />;
     case "schedule": {

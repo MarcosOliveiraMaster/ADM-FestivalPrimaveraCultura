@@ -49,7 +49,16 @@ export function SectionView({ section, ctx, renderBlock }: { section: Section; c
       )}
       {(s.wave === "top" || s.wave === "both") && <Wave color={s.waveColor} animate={s.waveAnimate} flip className="fp-wave-top" />}
       {(s.wave === "bottom" || s.wave === "both") && <Wave color={s.waveColor} animate={s.waveAnimate} className="fp-wave-bottom" />}
+      {s.audience === "members" && ctx.mode === "preview" && <span className="fp-members-badge">🔒 Só para participantes logados</span>}
       <div className={`w-full ${PAD[s.padding]} ${s.width === "full" ? "px-4 @2xl:px-8" : "mx-auto max-w-6xl px-5 @2xl:px-8"} ${ALIGN[s.align]}`}>
+        {s.audience === "members" && ctx.mode === "public" && !ctx.viewer?.loggedIn ? (
+          <div className="fp-card fp-members mx-auto max-w-xl text-center">
+            <div className="text-3xl" aria-hidden>🔒</div>
+            <h2 className="fp-heading fp-h3">Conteúdo exclusivo</h2>
+            <p className="opacity-80">Entre com sua conta para ver este conteúdo.</p>
+            <a href="/entrar" data-track="exclusivo:login" className="fp-btn fp-btn-primary self-center">Entrar ou criar conta</a>
+          </div>
+        ) : (
         <div className={`grid gap-8 @2xl:gap-12 ${GRID[section.layout]} ${VALIGN[s.valign]}`}>
           {section.columns.map((col, ci) => (
             <div key={ci} className="flex min-w-0 flex-col gap-5">
@@ -57,14 +66,21 @@ export function SectionView({ section, ctx, renderBlock }: { section: Section; c
             </div>
           ))}
         </div>
+        )}
       </div>
     </section>
   );
 }
 
+/** Cor própria da página: substitui a cor principal do tema só nesta página. */
+function pageColor(color?: string | null): React.CSSProperties | undefined {
+  if (!color || !/^#[0-9a-f]{6}$/i.test(color)) return undefined;
+  return { "--fp-primary": color } as React.CSSProperties;
+}
+
 export function PageRenderer({ content, ctx }: { content: PageContent; ctx: RenderContext }) {
   return (
-    <div className="@container fp-page">
+    <div className="@container fp-page" style={pageColor(ctx.page?.color)}>
       {content.sections.map((s) => (
         <SectionView key={s.id} section={s} ctx={ctx} />
       ))}

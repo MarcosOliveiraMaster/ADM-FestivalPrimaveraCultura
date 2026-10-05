@@ -28,6 +28,8 @@ export interface SectionStyle {
   waveColor?: string;
   /** Onda em movimento lento. */
   waveAnimate?: boolean;
+  /** "members" = conteúdo exclusivo: só aparece para quem fez login (ex.: galeria exclusiva). */
+  audience?: "all" | "members";
 }
 
 export interface Section {
@@ -75,6 +77,8 @@ export interface FaqProps {
   single?: boolean;
 }
 export interface NewsItem { title: string; subtitle?: string; image?: string; url: string; source?: string; date?: string }
+/** Inscrição no evento da página (login + confirmação por e-mail + Google Agenda). */
+export interface RegistrationProps { title?: string; intro?: string; buttonLabel?: string }
 /** Notícias: só título, subtítulo e imagem; o clique leva ao link externo da matéria. */
 export interface NewsProps { items: NewsItem[]; columns: 2 | 3; featured?: boolean }
 export interface LogosProps { title?: string; items: { url: string; name?: string; link?: string }[]; grayscale?: boolean }
@@ -95,6 +99,7 @@ export type BlockMap = {
   countdown: CountdownProps;
   faq: FaqProps;
   news: NewsProps;
+  registration: RegistrationProps;
   logos: LogosProps;
   spacer: SpacerProps;
   divider: DividerProps;
@@ -158,5 +163,7 @@ export interface RenderContext {
   pageId?: string;
   settings: SiteSettings;
   events: EventSummary[];
-  page?: { starts_at: string | null; ends_at: string | null; location: string | null; title: string };
+  page?: { starts_at: string | null; ends_at: string | null; location: string | null; title: string; color?: string | null };
+  /** Visitante logado (área do participante). */
+  viewer?: { loggedIn: boolean };
 }

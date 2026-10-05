@@ -66,6 +66,25 @@ export function googleCalendarUrl(title: string, start?: string | null, end?: st
   return `https://calendar.google.com/calendar/render?${p}`;
 }
 
+/** Arquivo .ics (Apple, Outlook, Google) com lembrete um dia antes. */
+export function icsFile(title: string, start: string, end: string | null | undefined, location: string | null | undefined, uidSeed: string) {
+  const f = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const e = end ?? new Date(new Date(start).getTime() + 2 * 3600 * 1000).toISOString();
+  const esc = (v: string) => v.replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
+  return [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Festival da Primavera//PT-BR", "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${uidSeed}@festival-da-primavera`,
+    `DTSTAMP:${f(new Date().toISOString())}`,
+    `DTSTART:${f(start)}`,
+    `DTEND:${f(e)}`,
+    `SUMMARY:${esc(title)}`,
+    location ? `LOCATION:${esc(location)}` : "",
+    "BEGIN:VALARM", "TRIGGER:-P1D", "ACTION:DISPLAY", `DESCRIPTION:${esc(title)}`, "END:VALARM",
+    "END:VEVENT", "END:VCALENDAR",
+  ].filter(Boolean).join("\r\n");
+}
+
 export function currentTime() {
   return Date.now();
 }
