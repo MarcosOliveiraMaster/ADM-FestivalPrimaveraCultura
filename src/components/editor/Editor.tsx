@@ -437,6 +437,7 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
         >
           {selBlock && selSection ? (
             <BlockInspector
+              pageId={page.id}
               key={selBlock.block.id}
               block={selBlock.block}
               columns={layoutCols(selSection.layout)}
@@ -449,6 +450,7 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
             />
           ) : selSection ? (
             <SectionInspector
+              pageId={page.id}
               key={selSection.id}
               section={selSection}
               onChange={(s) => mapSection(s.id, () => s, `s:${s.id}`)}

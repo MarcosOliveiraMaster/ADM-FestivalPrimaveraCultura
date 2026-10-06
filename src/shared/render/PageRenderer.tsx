@@ -26,8 +26,11 @@ export function SectionView({ section, ctx, renderBlock }: { section: Section; c
   const bg: React.CSSProperties = {};
   if (s.bgType === "color" && s.bgColor) bg.background = s.bgColor;
   if (s.bgType === "gradient") bg.background = `linear-gradient(135deg, ${s.bgColor || "var(--fp-primary)"}, ${s.bgColor2 || "var(--fp-accent)"})`;
-  const hero = ctx.settings.brand.hero_cover_url;
-  const imgUrl = s.bgType === "image" ? s.bgUrl || hero : undefined;
+  const brand = ctx.settings.brand;
+  // Capa padrão: até 5 imagens que revezam (Opções de capa) ou a imagem única antiga.
+  const heroList = (brand.hero_cover_urls?.length ? brand.hero_cover_urls : brand.hero_cover_url ? [brand.hero_cover_url] : []).filter(Boolean).slice(0, 5);
+  const heroRotates = s.bgType === "image" && !s.bgUrl && heroList.length > 1;
+  const imgUrl = s.bgType === "image" && !heroRotates ? s.bgUrl || heroList[0] : undefined;
   return (
     <section
       id={s.anchor || undefined}
@@ -40,12 +43,13 @@ export function SectionView({ section, ctx, renderBlock }: { section: Section; c
           <FramedImage url={imgUrl} loading="eager" className="h-full w-full object-cover" />
         </div>
       )}
-      {s.bgType === "image" && !imgUrl && <div className="absolute inset-0 -z-20" style={{ background: "linear-gradient(135deg, var(--fp-primary), var(--fp-accent))" }} />}
+      {s.bgType === "image" && !imgUrl && !heroRotates && <div className="absolute inset-0 -z-20" style={{ background: "linear-gradient(135deg, var(--fp-primary), var(--fp-accent))" }} />}
       {s.bgType === "video" && s.bgUrl && (
         <div className="absolute inset-0 -z-20 overflow-hidden">
           <video src={parseImage(s.bgUrl).src} autoPlay muted loop playsInline className="h-full w-full object-cover" style={frameStyle(parseImage(s.bgUrl).frame)} />
         </div>
       )}
+      {heroRotates && <HeroCarousel images={heroList} interval={brand.hero_interval} controls={ctx.mode === "public"} />}
       {s.bgType === "carousel" &&
         (slides.length ? (
           <HeroCarousel images={slides} interval={s.bgInterval} controls={ctx.mode === "public"} />

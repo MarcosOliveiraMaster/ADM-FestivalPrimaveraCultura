@@ -7,6 +7,8 @@ import { videoEmbedUrl } from "@/shared/format";
 import { FrameButton, MediaField, MediaPickerModal } from "../MediaLibrary";
 import { FramedImage } from "@/shared/render/FramedImage";
 import { RichTextEditor } from "./RichTextEditor";
+import { purgeMedia } from "@/app/(painel)/midia/actions";
+import { formatBytes } from "@/lib/media";
 import { ColorInput, DateTime, ListEditor, NumberField, Segmented, Select, Text, Toggle } from "./fields";
 
 const ALIGN_OPTS = [["left", <AlignLeft key="l" size={14} />], ["center", <AlignCenter key="c" size={14} />], ["right", <AlignRight key="r" size={14} />]] as const;
@@ -32,16 +34,43 @@ function Actions({ onUp, onDown, onDuplicate, onDelete, extra }: { onUp: () => v
   );
 }
 
+/**
+ * Remove imagens e apaga os arquivos do servidor (libera espaço). Arquivos usados em
+ * outra página ou nas configurações são mantidos. Devolve uma mensagem para o painel.
+ */
+function useImageRemoval(pageId?: string) {
+  const [notice, setNotice] = useState<string | null>(null);
+  function confirmAndPurge(removed: string[]): boolean {
+    const urls = removed.filter(Boolean);
+    if (!urls.length) return true;
+    if (!confirm(`Remover ${urls.length > 1 ? `${urls.length} imagens` : "esta imagem"} e apagar do servidor?\n\nO espaço é liberado na hora. Se a imagem estiver em uso em outra página, o arquivo é mantido. Publique a página para atualizar o site.`)) return false;
+    setNotice("Apagando do servidor…");
+    purgeMedia(urls, pageId).then((r) => {
+      if (!r.ok) return setNotice(r.error);
+      const parts = [];
+      if (r.deleted) parts.push(`${r.deleted} arquivo(s) apagado(s) do servidor${r.freed ? ` (${formatBytes(r.freed)} liberados)` : ""}`);
+      if (r.kept) parts.push(`${r.kept} mantido(s) porque está(ão) em uso em outra página`);
+      setNotice(parts.join(" · ") || "Removido.");
+    }, () => setNotice("Não foi possível apagar do servidor agora."));
+    return true;
+  }
+  const noticeEl = notice ? <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs text-zinc-600">{notice}</span> : null;
+  return { confirmAndPurge, noticeEl };
+}
+
 /** Imagens do hero carrossel: adicionar da biblioteca, reordenar, ajustar enquadramento e tempo. */
-function CarouselFields({ images, interval, onChange }: { images: string[]; interval: number; onChange: (patch: Partial<SectionStyle>) => void }) {
+function CarouselFields({ images, interval, onChange, pageId }: { images: string[]; interval: number; onChange: (patch: Partial<SectionStyle>) => void; pageId?: string }) {
   const [open, setOpen] = useState(false);
+  const { confirmAndPurge, noticeEl } = useImageRemoval(pageId);
   return (
     <>
       <button type="button" className="adm-btn-primary adm-btn-sm self-start" onClick={() => setOpen(true)}><Images size={14} /> Adicionar imagens</button>
       <ListEditor
         label={`Imagens do carrossel (${images.length})`}
         items={images}
-        onChange={(bgImages) => onChange({ bgImages })}
+        onChange={(bgImages) => {
+          if (confirmAndPurge(images.filter((u) => u && !bgImages.includes(u)))) onChange({ bgImages });
+        }}
         create={() => ""}
         addLabel="Adicionar vazio"
         render={(url, setUrl) => (
@@ -51,6 +80,7 @@ function CarouselFields({ images, interval, onChange }: { images: string[]; inte
           </div>
         )}
       />
+      {noticeEl}
       <NumberField label="Segundos por imagem" value={interval} min={2} max={30} onChange={(v) => onChange({ bgInterval: Math.min(30, Math.max(2, v || 6)) })} />
       <span className="adm-help">As imagens trocam sozinhas com transição suave; o visitante pode pausar. Use fotos na horizontal (1920×1080).</span>
       <MediaPickerModal open={open} multiple onClose={() => setOpen(false)} onSelect={(items) => onChange({ bgImages: [...images, ...items.map((m) => m.url)] })} />
@@ -58,7 +88,8 @@ function CarouselFields({ images, interval, onChange }: { images: string[]; inte
   );
 }
 
-export function SectionInspector({ section, onChange, onLayout, onMove, onDuplicate, onDelete }: {
+export function SectionInspector({ section, onChange, onLayout, onMove, onDuplicate, onDelete, pageId }: {
+  pageId?: string;
   section: Section;
   onChange: (s: Section) => void;
   onLayout: (l: Section["layout"]) => void;
@@ -101,7 +132,7 @@ export function SectionInspector({ section, onChange, onLayout, onMove, onDuplic
         {(s.bgType === "color" || s.bgType === "gradient") && <ColorInput label={s.bgType === "gradient" ? "Cor inicial" : "Cor"} value={s.bgColor} onChange={(v) => set({ bgColor: v })} placeholder={s.bgType === "gradient" ? "cor primária" : "#ffffff"} />}
         {s.bgType === "gradient" && <ColorInput label="Cor final" value={s.bgColor2} onChange={(v) => set({ bgColor2: v })} placeholder="cor de destaque" />}
         {s.bgType === "image" && <MediaField label="Imagem de fundo" value={s.bgUrl} onChange={(v) => set({ bgUrl: v })} help="Vazio = usa a capa da landing definida em Configurações. Clique em Ajustar para posicionar e dar zoom." folder="fundos" aspect="16 / 9" mobile />}
-        {s.bgType === "carousel" && <CarouselFields images={s.bgImages ?? []} interval={s.bgInterval ?? 6} onChange={(patch) => set(patch)} />}
+        {s.bgType === "carousel" && <CarouselFields images={s.bgImages ?? []} interval={s.bgInterval ?? 6} onChange={(patch) => set(patch)} pageId={pageId} />}
         {s.bgType === "video" && <MediaField label="Vídeo de fundo (MP4)" kind="video" value={s.bgUrl} onChange={(v) => set({ bgUrl: v })} folder="fundos" />}
         {(s.bgType === "image" || s.bgType === "video" || s.bgType === "carousel") && (
           <label className="adm-label">
@@ -133,7 +164,8 @@ export function SectionInspector({ section, onChange, onLayout, onMove, onDuplic
   );
 }
 
-export function BlockInspector({ block, columns, column, onChange, onMove, onMoveColumn, onDuplicate, onDelete }: {
+export function BlockInspector({ block, columns, column, onChange, onMove, onMoveColumn, onDuplicate, onDelete, pageId }: {
+  pageId?: string;
   block: Block;
   columns: number;
   column: number;
@@ -164,13 +196,14 @@ export function BlockInspector({ block, columns, column, onChange, onMove, onMov
         />
       </Group>
       <Group title="Conteúdo">
-        <BlockFields block={block} set={setProps} />
+        <BlockFields block={block} set={setProps} pageId={pageId} />
       </Group>
     </div>
   );
 }
 
-function BlockFields({ block, set }: { block: Block; set: (patch: Record<string, unknown>) => void }) {
+function BlockFields({ block, set, pageId }: { block: Block; set: (patch: Record<string, unknown>) => void; pageId?: string }) {
+  const { confirmAndPurge, noticeEl } = useImageRemoval(pageId);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [logosOpen, setLogosOpen] = useState(false);
   switch (block.type) {
@@ -209,7 +242,7 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
           <div className="flex flex-wrap gap-2">
             <button type="button" className="adm-btn-primary adm-btn-sm" onClick={() => setGalleryOpen(true)}><Images size={14} /> Adicionar imagens</button>
             {p.images.length > 0 && (
-              <button type="button" className="adm-btn-ghost adm-btn-sm text-red-600" onClick={() => confirm(`Remover todas as ${p.images.length} imagens desta galeria? (Os arquivos continuam na biblioteca de Mídia.)`) && set({ images: [] })}>
+              <button type="button" className="adm-btn-ghost adm-btn-sm text-red-600" onClick={() => confirmAndPurge(p.images.map((x) => x.url)) && set({ images: [] })}>
                 <Trash2 size={14} /> Remover todas
               </button>
             )}
@@ -217,7 +250,9 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
           <ListEditor
             label={`Imagens (${p.images.length})`}
             items={p.images}
-            onChange={(images) => set({ images })}
+            onChange={(images) => {
+              if (confirmAndPurge(p.images.filter((x) => !images.some((y) => y.url === x.url)).map((x) => x.url))) set({ images });
+            }}
             create={() => ({ url: "", alt: "" })}
             addLabel="Adicionar vazia"
             render={(im, setIm) => (
@@ -227,13 +262,14 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
                   <input value={im.alt ?? ""} onChange={(e) => setIm({ ...im, alt: e.target.value })} placeholder="Descrição" className="adm-input" />
                   <div className="flex flex-wrap items-center gap-1">
                     <FrameButton url={im.url} onChange={(url) => setIm({ ...im, url })} aspect={p.mode === "carousel" ? "16 / 9" : "1 / 1"} />
-                    <button type="button" className="adm-btn-ghost adm-btn-sm text-red-600" onClick={() => set({ images: p.images.filter((x) => x !== im) })}><Trash2 size={13} /> Remover</button>
+                    <button type="button" className="adm-btn-ghost adm-btn-sm text-red-600" onClick={() => confirmAndPurge([im.url]) && set({ images: p.images.filter((x) => x !== im) })}><Trash2 size={13} /> Remover</button>
                   </div>
                 </div>
               </div>
             )}
           />
-          <span className="adm-help">“Remover” tira a foto só desta galeria. Para apagar o arquivo do servidor, use Mídia ou Armazenamento.</span>
+          {noticeEl}
+          <span className="adm-help">“Remover” tira a foto da galeria e apaga o arquivo do servidor, liberando espaço (se ela não estiver em uso em outra página).</span>
           <MediaPickerModal open={galleryOpen} multiple onClose={() => setGalleryOpen(false)} onSelect={(items) => set({ images: [...p.images, ...items.map((m) => ({ url: m.url, alt: m.alt ?? "" }))] })} />
         </>
       );

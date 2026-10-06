@@ -91,7 +91,7 @@ export function SettingsForm({ initial, tab: initialTab, pages, siteUrl }: { ini
                 <MediaField label="Logo versão clara" value={s.brand.logo_light_url} onChange={(v) => brand("logo_light_url", v)} help="Para fundos escuros e rodapé." folder="identidade" aspect="3 / 1" fit="contain" />
                 <MediaField label="Ícone / favicon" value={s.brand.favicon_url} onChange={(v) => brand("favicon_url", v)} help="PNG quadrado 512×512. Vazio = usa o ícone da marca." folder="identidade" aspect="1 / 1" fit="contain" />
                 <MediaField label="Imagem de compartilhamento" value={s.brand.og_image_url} onChange={(v) => brand("og_image_url", v)} help="1200×630 — prévia no WhatsApp/Instagram." folder="identidade" aspect="1200 / 630" />
-                <MediaField label="Capa da landing (hero)" value={s.brand.hero_cover_url} onChange={(v) => brand("hero_cover_url", v)} help="1920×1080. Usada nas seções com fundo “Imagem” sem arquivo próprio." folder="identidade" aspect="16 / 9" mobile />
+                <MediaField label="Capa da landing (hero)" value={s.brand.hero_cover_url} onChange={(v) => brand("hero_cover_url", v)} help="1920×1080. Usada nas seções com fundo “Imagem” sem arquivo próprio. Para até 5 imagens revezando, use o menu Opções de capa (tem prioridade)." folder="identidade" aspect="16 / 9" mobile />
                 <MediaField label="Capa padrão de evento" value={s.brand.event_cover_url} onChange={(v) => brand("event_cover_url", v)} help="1600×900. Para eventos sem capa própria." folder="identidade" aspect="16 / 10" />
               </div>
             </div>

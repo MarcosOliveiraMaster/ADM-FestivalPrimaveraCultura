@@ -125,6 +125,10 @@ export interface Brand {
   favicon_url?: string;
   og_image_url?: string;
   hero_cover_url?: string;
+  /** Até 5 imagens de capa que revezam automaticamente (a primeira também fica em hero_cover_url). */
+  hero_cover_urls?: string[];
+  /** Segundos por imagem da capa (padrão 6). */
+  hero_interval?: number;
   event_cover_url?: string;
 }
 export interface Theme {
