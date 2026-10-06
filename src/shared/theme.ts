@@ -54,6 +54,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     { label: "Início", href: "/", visible: true },
     { label: "Sobre", href: "/#sobre", visible: true },
     { label: "Eventos", href: "/eventos", visible: true, auto: "eventos" },
+    { label: "Cortejos", href: "/cortejos", visible: true, auto: "cortejos" },
+    { label: "Capacitações", href: "/capacitacoes", visible: true, auto: "capacitacoes" },
     { label: "Contato", href: "/#contato", visible: true },
   ],
   footer: {},
@@ -96,6 +98,17 @@ export function googleFontsHref(theme: Theme | undefined, extra: string[] = []) 
   return `https://fonts.googleapis.com/css2?${params.join("&")}&display=swap`;
 }
 
+/** Menus salvos antes de existirem Cortejos/Capacitações ganham esses itens (podem ser ocultados no ADM). */
+function withAreaMenus(nav: SiteSettings["nav"]): SiteSettings["nav"] {
+  const out = [...nav];
+  for (const item of DEFAULT_SETTINGS.nav.filter((n) => n.auto && n.auto !== "eventos")) {
+    if (out.some((n) => n.auto === item.auto)) continue;
+    const after = out.findIndex((n) => n.auto === "eventos");
+    out.splice(after >= 0 ? after + 1 : out.length, 0, { ...item });
+  }
+  return out;
+}
+
 export function mergeSettings(row: Partial<SiteSettings> | null | undefined): SiteSettings {
   if (!row) return DEFAULT_SETTINGS;
   return {
@@ -103,7 +116,7 @@ export function mergeSettings(row: Partial<SiteSettings> | null | undefined): Si
     ...Object.fromEntries(Object.entries(row).filter(([, v]) => v !== null && v !== undefined)),
     brand: { ...(row.brand ?? {}) },
     theme: { ...(row.theme ?? {}) },
-    nav: Array.isArray(row.nav) && row.nav.length ? row.nav : DEFAULT_SETTINGS.nav,
+    nav: withAreaMenus(Array.isArray(row.nav) && row.nav.length ? row.nav : DEFAULT_SETTINGS.nav),
     footer: { ...(row.footer ?? {}) },
     social: { ...(row.social ?? {}) },
     tagline: row.tagline ?? null,

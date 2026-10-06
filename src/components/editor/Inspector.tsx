@@ -32,6 +32,32 @@ function Actions({ onUp, onDown, onDuplicate, onDelete, extra }: { onUp: () => v
   );
 }
 
+/** Imagens do hero carrossel: adicionar da biblioteca, reordenar, ajustar enquadramento e tempo. */
+function CarouselFields({ images, interval, onChange }: { images: string[]; interval: number; onChange: (patch: Partial<SectionStyle>) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" className="adm-btn-primary adm-btn-sm self-start" onClick={() => setOpen(true)}><Images size={14} /> Adicionar imagens</button>
+      <ListEditor
+        label={`Imagens do carrossel (${images.length})`}
+        items={images}
+        onChange={(bgImages) => onChange({ bgImages })}
+        create={() => ""}
+        addLabel="Adicionar vazio"
+        render={(url, setUrl) => (
+          <div className="flex items-center gap-2">
+            {url ? <span className="h-12 w-20 shrink-0 overflow-hidden rounded bg-white"><FramedImage url={url} className="h-full w-full object-cover" /></span> : <div className="h-12 w-20 shrink-0 rounded bg-zinc-200" />}
+            <FrameButton url={url} onChange={setUrl} aspect="16 / 9" />
+          </div>
+        )}
+      />
+      <NumberField label="Segundos por imagem" value={interval} min={2} max={30} onChange={(v) => onChange({ bgInterval: Math.min(30, Math.max(2, v || 6)) })} />
+      <span className="adm-help">As imagens trocam sozinhas com transição suave; o visitante pode pausar. Use fotos na horizontal (1920×1080).</span>
+      <MediaPickerModal open={open} multiple onClose={() => setOpen(false)} onSelect={(items) => onChange({ bgImages: [...images, ...items.map((m) => m.url)] })} />
+    </>
+  );
+}
+
 export function SectionInspector({ section, onChange, onLayout, onMove, onDuplicate, onDelete }: {
   section: Section;
   onChange: (s: Section) => void;
@@ -70,13 +96,14 @@ export function SectionInspector({ section, onChange, onLayout, onMove, onDuplic
           label="Tipo de fundo"
           value={s.bgType}
           onChange={(v) => set({ bgType: v })}
-          options={[["none", "Padrão do site"], ["color", "Cor"], ["gradient", "Degradê"], ["image", "Imagem"], ["video", "Vídeo"]]}
+          options={[["none", "Padrão do site"], ["color", "Cor"], ["gradient", "Degradê"], ["image", "Imagem"], ["carousel", "Carrossel de imagens"], ["video", "Vídeo"]]}
         />
         {(s.bgType === "color" || s.bgType === "gradient") && <ColorInput label={s.bgType === "gradient" ? "Cor inicial" : "Cor"} value={s.bgColor} onChange={(v) => set({ bgColor: v })} placeholder={s.bgType === "gradient" ? "cor primária" : "#ffffff"} />}
         {s.bgType === "gradient" && <ColorInput label="Cor final" value={s.bgColor2} onChange={(v) => set({ bgColor2: v })} placeholder="cor de destaque" />}
         {s.bgType === "image" && <MediaField label="Imagem de fundo" value={s.bgUrl} onChange={(v) => set({ bgUrl: v })} help="Vazio = usa a capa da landing definida em Configurações. Clique em Ajustar para posicionar e dar zoom." folder="fundos" aspect="16 / 9" mobile />}
+        {s.bgType === "carousel" && <CarouselFields images={s.bgImages ?? []} interval={s.bgInterval ?? 6} onChange={(patch) => set(patch)} />}
         {s.bgType === "video" && <MediaField label="Vídeo de fundo (MP4)" kind="video" value={s.bgUrl} onChange={(v) => set({ bgUrl: v })} folder="fundos" />}
-        {(s.bgType === "image" || s.bgType === "video") && (
+        {(s.bgType === "image" || s.bgType === "video" || s.bgType === "carousel") && (
           <label className="adm-label">
             Escurecer fundo: {s.overlay ?? 40}%
             <input type="range" min={0} max={80} step={5} value={s.overlay ?? 40} onChange={(e) => set({ overlay: Number(e.target.value) })} className="accent-brand-500" />
@@ -343,6 +370,18 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
           <Text label="Texto" multiline value={p.intro} onChange={(v) => set({ intro: v })} />
           <Text label="Texto do botão" value={p.buttonLabel} onChange={(v) => set({ buttonLabel: v })} />
           <span className="adm-help">Abra/feche as inscrições, defina vagas e carga horária em Configurações da página. O participante faz login (Google ou e-mail), recebe confirmação por e-mail com link para o Google Agenda e, após a presença marcada em Participantes, emite o certificado.</span>
+        </>
+      );
+    }
+    case "training": {
+      const p = block.props;
+      return (
+        <>
+          <Text label="Título" value={p.title} onChange={(v) => set({ title: v })} />
+          <Text label="Texto" multiline value={p.intro} onChange={(v) => set({ intro: v })} />
+          <Text label="Texto do botão" value={p.buttonLabel} onChange={(v) => set({ buttonLabel: v })} />
+          <Text label="Mensagem após enviar" multiline value={p.successMessage} onChange={(v) => set({ successMessage: v })} />
+          <span className="adm-help">Pede nome, e-mail e telefone (sem login) e envia confirmação por e-mail. Use em páginas do tipo Capacitação; abra as inscrições e defina vagas em Configurações da página. As inscrições aparecem em Capacitações no menu do painel.</span>
         </>
       );
     }

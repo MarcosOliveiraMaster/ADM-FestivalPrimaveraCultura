@@ -7,6 +7,7 @@ import { BLOCK_LIBRARY, layoutCols, LAYOUTS, newBlock, newSection, relayout, uid
 import { googleFontsHref, themeCss } from "@/shared/theme";
 import { currentTime, formatDateTime } from "@/shared/format";
 import { SectionView } from "@/shared/render/PageRenderer";
+import { pagePath } from "@/shared/areas";
 import { BlockView } from "@/shared/render/BlockView";
 import { BrandIcon } from "@/shared/render/BrandIcon";
 import { StatusBadge } from "../StatusBadge";
@@ -281,7 +282,7 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
 
   const selSection = selection ? content.sections.find((s) => s.id === selection.sid) : null;
   const selBlock = selection?.kind === "block" ? findBlock(selection.bid) : null;
-  const publicUrl = `${siteUrl}${page.kind === "home" ? "/" : `/eventos/${page.slug}`}`;
+  const publicUrl = `${siteUrl}${pagePath(page)}`;
   const isLive = page.status === "published" || (page.status === "scheduled" && !!page.publish_at && new Date(page.publish_at).getTime() <= now);
 
   return (

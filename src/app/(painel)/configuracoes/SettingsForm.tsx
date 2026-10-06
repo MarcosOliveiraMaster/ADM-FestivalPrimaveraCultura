@@ -2,7 +2,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
-import type { NavItem, SiteSettings } from "@/shared/types";
+import type { NavItem, PageKind, SiteSettings } from "@/shared/types";
+import { pagePath } from "@/shared/areas";
 import { DEFAULT_THEME, FONT_CATALOG, findFont, googleFontsHref, themeCss } from "@/shared/theme";
 import { BrandIcon } from "@/shared/render/BrandIcon";
 import { MediaField } from "@/components/MediaLibrary";
@@ -198,16 +199,16 @@ function NavEditor({ nav, onChange, pages }: { nav: NavItem[]; onChange: (n: Nav
       {nav.map((n, i) => (
         <div key={i} className={`flex flex-wrap items-center gap-2 rounded-lg border p-2 ${n.visible ? "border-zinc-200" : "border-dashed border-zinc-300 opacity-60"}`}>
           <input value={n.label} onChange={(e) => upd(i, { label: e.target.value })} className="adm-input w-40" placeholder="Nome" />
-          <input value={n.href} onChange={(e) => upd(i, { href: e.target.value })} className="adm-input min-w-40 flex-1" placeholder="/pagina ou https://" list="nav-pages" disabled={n.auto === "eventos"} />
-          {n.auto === "eventos" && <span className="adm-badge bg-brand-50 text-brand-700">automático</span>}
+          <input value={n.href} onChange={(e) => upd(i, { href: e.target.value })} className="adm-input min-w-40 flex-1" placeholder="/pagina ou https://" list="nav-pages" disabled={!!n.auto} />
+          {n.auto && <span className="adm-badge bg-brand-50 text-brand-700">automático</span>}
           <button type="button" className="adm-btn-ghost adm-btn-sm" onClick={() => upd(i, { visible: !n.visible })} title={n.visible ? "Ocultar" : "Mostrar"}>{n.visible ? <Eye size={15} /> : <EyeOff size={15} />}</button>
           <button type="button" className="adm-btn-ghost adm-btn-sm" onClick={() => move(i, -1)}><ArrowUp size={15} /></button>
           <button type="button" className="adm-btn-ghost adm-btn-sm" onClick={() => move(i, 1)}><ArrowDown size={15} /></button>
-          {n.auto !== "eventos" && <button type="button" className="adm-btn-ghost adm-btn-sm text-red-600" onClick={() => onChange(nav.filter((_, k) => k !== i))}><Trash2 size={15} /></button>}
+          {!n.auto && <button type="button" className="adm-btn-ghost adm-btn-sm text-red-600" onClick={() => onChange(nav.filter((_, k) => k !== i))}><Trash2 size={15} /></button>}
         </div>
       ))}
       <datalist id="nav-pages">
-        {pages.map((p) => <option key={p.slug} value={`/eventos/${p.slug}`}>{p.title}</option>)}
+        {pages.map((p) => <option key={p.slug} value={pagePath(p as { slug: string; kind: PageKind })}>{p.title}</option>)}
         <option value="/#sobre" />
         <option value="/#programacao" />
         <option value="/#contato" />

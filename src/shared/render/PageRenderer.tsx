@@ -2,6 +2,7 @@ import type { Block, PageContent, RenderContext, Section } from "../types";
 import { BlockView } from "./BlockView";
 import { FramedImage } from "./FramedImage";
 import { Wave } from "./Wave";
+import { HeroCarousel } from "./HeroCarousel";
 import { frameStyle, parseImage } from "../image";
 
 const GRID: Record<Section["layout"], string> = {
@@ -20,7 +21,8 @@ const HIDE = { none: "", mobile: "hidden @2xl:block", desktop: "@2xl:hidden" } a
 
 export function SectionView({ section, ctx, renderBlock }: { section: Section; ctx: RenderContext; renderBlock?: (block: Block, col: number, idx: number) => React.ReactNode }) {
   const s = section.style;
-  const dark = s.textTone === "light" || (s.textTone === "auto" && ["image", "video", "gradient"].includes(s.bgType));
+  const dark = s.textTone === "light" || (s.textTone === "auto" && ["image", "video", "gradient", "carousel"].includes(s.bgType));
+  const slides = s.bgType === "carousel" ? (s.bgImages ?? []).filter(Boolean) : [];
   const bg: React.CSSProperties = {};
   if (s.bgType === "color" && s.bgColor) bg.background = s.bgColor;
   if (s.bgType === "gradient") bg.background = `linear-gradient(135deg, ${s.bgColor || "var(--fp-primary)"}, ${s.bgColor2 || "var(--fp-accent)"})`;
@@ -44,7 +46,13 @@ export function SectionView({ section, ctx, renderBlock }: { section: Section; c
           <video src={parseImage(s.bgUrl).src} autoPlay muted loop playsInline className="h-full w-full object-cover" style={frameStyle(parseImage(s.bgUrl).frame)} />
         </div>
       )}
-      {(s.bgType === "image" || s.bgType === "video") && (
+      {s.bgType === "carousel" &&
+        (slides.length ? (
+          <HeroCarousel images={slides} interval={s.bgInterval} controls={ctx.mode === "public"} />
+        ) : (
+          <div className="absolute inset-0 -z-20" style={{ background: "linear-gradient(135deg, var(--fp-primary), var(--fp-accent))" }} />
+        ))}
+      {(s.bgType === "image" || s.bgType === "video" || s.bgType === "carousel") && (
         <div className="absolute inset-0 -z-10 bg-black" style={{ opacity: (s.overlay ?? 40) / 100 }} />
       )}
       {(s.wave === "top" || s.wave === "both") && <Wave color={s.waveColor} animate={s.waveAnimate} flip className="fp-wave-top" />}

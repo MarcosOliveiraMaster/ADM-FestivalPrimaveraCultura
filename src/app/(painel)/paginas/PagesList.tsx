@@ -11,6 +11,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { PAGE_TEMPLATES } from "@/shared/blocks";
 import { formatDate, formatDateTime } from "@/shared/format";
 import type { PageKind, PageStatus } from "@/shared/types";
+import { isArea, pagePath } from "@/shared/areas";
 import { createPage, deletePage, duplicatePage, reorderPages, setStatus } from "./actions";
 
 export interface PageRow {
@@ -29,8 +30,10 @@ export interface PageRow {
 }
 
 export function publicPath(p: { kind: PageKind; slug: string }) {
-  return p.kind === "home" ? "/" : `/eventos/${p.slug}`;
+  return pagePath(p);
 }
+
+const KIND_LABEL: Record<PageKind, string> = { home: "Início", evento: "Evento", cortejo: "Cortejo", capacitacao: "Capacitação", institucional: "Institucional" };
 
 function Row({ p, isAdmin, siteUrl, onAction, busy }: { p: PageRow; isAdmin: boolean; siteUrl: string; onAction: (fn: () => Promise<unknown>) => void; busy: boolean }) {
   const { setNodeRef, transform, transition, isDragging, attributes, listeners } = useSortable({ id: p.id, disabled: p.kind === "home" });
@@ -51,8 +54,8 @@ function Row({ p, isAdmin, siteUrl, onAction, busy }: { p: PageRow; isAdmin: boo
         <a href={`/paginas/${p.id}`} className="font-medium text-zinc-900 hover:text-brand-600">{p.title}</a>
         <div className="text-xs text-zinc-500">
           {publicPath(p)}
-          {p.kind === "evento" && !p.show_in_nav && " · fora do menu"}
-          {p.kind === "institucional" && " · institucional"}
+          {p.kind !== "home" && p.kind !== "evento" && ` · ${KIND_LABEL[p.kind].toLowerCase()}`}
+          {isArea(p.kind) && !p.show_in_nav && " · fora do menu"}
         </div>
       </td>
       <td>
@@ -110,7 +113,7 @@ export function PagesList({ pages, isAdmin, siteUrl }: { pages: PageRow[]; isAdm
   const [busy, start] = useTransition();
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"todas" | "evento" | "institucional">("todas");
+  const [filter, setFilter] = useState<"todas" | PageKind>("todas");
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
@@ -141,10 +144,10 @@ export function PagesList({ pages, isAdmin, siteUrl }: { pages: PageRow[]; isAdm
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-1 rounded-lg bg-zinc-100 p-1 text-sm">
-          {(["todas", "evento", "institucional"] as const).map((f) => (
+        <div className="flex flex-wrap gap-1 rounded-lg bg-zinc-100 p-1 text-sm">
+          {([["todas", "Todas"], ["evento", "Eventos"], ["cortejo", "Cortejos"], ["capacitacao", "Capacitações"], ["institucional", "Institucionais"]] as const).map(([f, label]) => (
             <button type="button" key={f} onClick={() => setFilter(f)} className={`rounded-md px-3 py-1 ${filter === f ? "bg-white font-medium shadow-sm" : "text-zinc-600"}`}>
-              {f === "todas" ? "Todas" : f === "evento" ? "Eventos" : "Institucionais"}
+              {label}
             </button>
           ))}
         </div>
@@ -173,7 +176,7 @@ export function PagesList({ pages, isAdmin, siteUrl }: { pages: PageRow[]; isAdm
             </SortableContext>
           </table>
         </DndContext>
-        {visible.length <= 1 && <p className="p-8 text-center text-sm text-zinc-500">Nenhuma página de evento ainda. Clique em “Nova página” para começar.</p>}
+        {visible.length <= 1 && <p className="p-8 text-center text-sm text-zinc-500">Nenhuma página aqui ainda. Clique em “Nova página” para começar.</p>}
       </div>
       <p className="text-xs text-zinc-500">Arraste pelas alças ⠿ para definir a ordem em que os eventos aparecem no site. No celular, segure a alça por um instante antes de arrastar.</p>
       <CreateModal open={creating} onClose={() => setCreating(false)} />
@@ -203,8 +206,13 @@ function CreateModal({ open, onClose }: { open: boolean; onClose: () => void }) 
         <div className="adm-label">
           Tipo
           <div className="grid grid-cols-2 gap-2">
-            {([["evento", "Evento", "Aparece em “Eventos” no menu e na programação"], ["institucional", "Institucional", "Página avulsa (ex.: Regulamento, Imprensa)"]] as const).map(([v, l, d]) => (
-              <button type="button" key={v} onClick={() => setKind(v)} className={`rounded-lg border p-3 text-left ${kind === v ? "border-brand-500 bg-brand-50 ring-2 ring-brand-500/20" : "border-zinc-200"}`}>
+            {([
+              ["evento", "Evento", "Aparece em “Eventos” no menu e na programação"],
+              ["cortejo", "Cortejo", "Aparece em “Cortejos” no menu"],
+              ["capacitacao", "Capacitação", "Aparece em “Capacitações”, com inscrição sem login"],
+              ["institucional", "Institucional", "Página avulsa (ex.: Regulamento, Imprensa)"],
+            ] as const).map(([v, l, d]) => (
+              <button type="button" key={v} onClick={() => { setKind(v); if (v === "capacitacao") setTemplate("capacitacao"); }} className={`rounded-lg border p-3 text-left ${kind === v ? "border-brand-500 bg-brand-50 ring-2 ring-brand-500/20" : "border-zinc-200"}`}>
                 <div className="font-medium">{l}</div>
                 <div className="text-xs font-normal text-zinc-500">{d}</div>
               </button>

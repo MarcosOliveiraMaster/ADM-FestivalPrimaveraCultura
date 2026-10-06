@@ -42,6 +42,7 @@ export const BLOCK_LIBRARY: { type: BlockType; label: string; description: strin
   { type: "logos", label: "Logos / patrocinadores", description: "Grade de logos com links", group: "Mídia" },
   { type: "eventinfo", label: "Data, hora e local", description: "Agenda, endereço e mapa", group: "Evento" },
   { type: "registration", label: "Inscrição no evento", description: "Inscrição com login, e-mail de confirmação e Google Agenda", group: "Evento" },
+  { type: "training", label: "Inscrição em capacitação", description: "Nome, e-mail e telefone, sem login, com confirmação por e-mail", group: "Evento" },
   { type: "form", label: "Formulário de interesse", description: "Coleta interessados", group: "Evento" },
   { type: "schedule", label: "Programação automática", description: "Lista os eventos publicados", group: "Evento" },
   { type: "countdown", label: "Contagem regressiva", description: "Até uma data", group: "Evento" },
@@ -81,6 +82,7 @@ export const BLOCK_DEFAULTS: { [K in BlockType]: () => BlockMap[K] } = {
     single: false,
   }),
   registration: () => ({ title: "Inscreva-se", intro: "Faça login e garanta sua vaga. Você recebe a confirmação por e-mail.", buttonLabel: "Quero me inscrever" }),
+  training: () => ({ title: "Inscreva-se na capacitação", intro: "Preencha seus dados. Você recebe a confirmação por e-mail.", buttonLabel: "Fazer inscrição", successMessage: "Inscrição recebida! Enviamos a confirmação para o seu e-mail." }),
   news: () => ({ items: [{ title: "Título da notícia", subtitle: "", image: "", url: "https://", source: "" }], columns: 3, featured: true }),
   logos: () => ({ title: "Apoio", items: [], grayscale: false }),
   spacer: () => ({ size: "md" }),
@@ -170,6 +172,25 @@ export const PAGE_TEMPLATES: { id: string; label: string; description: string; b
           [b("eventinfo", { showMap: false }), b("links", { items: [{ title: "Material de apoio", url: "https://", description: "" }] })],
         ], "Detalhes"),
         sec("1", { padding: "lg" }, [[b("form", { title: "Inscreva-se" })]], "Inscrição"),
+      ],
+    }),
+  },
+  {
+    id: "capacitacao",
+    label: "Capacitação",
+    description: "Apresentação, conteúdo, data/local e formulário de inscrição (sem login)",
+    build: (title) => ({
+      sections: [
+        sec("1", { padding: "lg", bgType: "gradient", textTone: "light", minHeight: "half", valign: "center" }, [[
+          b("heading", { text: title, level: 1 }),
+          b("richtext", { html: "<p>Para quem é, quem ministra e o que se aprende.</p>" }),
+          b("button", { label: "Quero me inscrever", href: "#inscricao", size: "lg" }),
+        ]], "Capa"),
+        sec("2-1", { padding: "lg" }, [
+          [b("heading", { text: "Conteúdo", level: 3 }), b("richtext", { html: "<ul><li>Módulo 1</li><li>Módulo 2</li></ul>" })],
+          [b("eventinfo", { showMap: false })],
+        ], "Detalhes"),
+        sec("1", { padding: "lg", anchor: "inscricao" }, [[b("training")]], "Inscrição"),
       ],
     }),
   },

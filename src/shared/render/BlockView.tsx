@@ -8,6 +8,8 @@ import { BrandIcon } from "./BrandIcon";
 import { FramedImage } from "./FramedImage";
 import { Wave } from "./Wave";
 import { Registration } from "./Registration";
+import { TrainingForm } from "./TrainingForm";
+import { pagePath } from "../areas";
 
 const TXT_ALIGN = { left: "text-left", center: "text-center", right: "text-right" } as const;
 const JUSTIFY = { left: "justify-start", center: "justify-center", right: "justify-end" } as const;
@@ -129,6 +131,8 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
     }
     case "registration":
       return <Registration props={block.props} pageId={ctx.pageId} preview={ctx.mode === "preview"} event={ctx.page} />;
+    case "training":
+      return <TrainingForm props={block.props} pageId={ctx.pageId} preview={ctx.mode === "preview"} />;
     case "form":
       return <InterestForm props={block.props} pageId={ctx.pageId} preview={ctx.mode === "preview"} events={ctx.events} iconUrl={ctx.settings.brand.icon_url} />;
     case "schedule": {
@@ -289,7 +293,7 @@ export function NewsCard({ n, featured, icon }: { n: NonNullable<Extract<Block, 
 export function EventCard({ e, fallback, icon }: { e: RenderContext["events"][number]; fallback?: string; icon?: string }) {
   const cover = e.cover_url || fallback;
   return (
-    <a href={`/eventos/${e.slug}`} data-track={`evento:${e.slug}`} className="fp-event-card group">
+    <a href={pagePath({ kind: e.kind ?? "evento", slug: e.slug })} data-track={`evento:${e.slug}`} className="fp-event-card group">
       <div className="aspect-[16/10] overflow-hidden">
         {cover ? (
           <div className="h-full w-full transition duration-500 group-hover:scale-105">
