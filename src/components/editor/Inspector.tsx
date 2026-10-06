@@ -206,7 +206,14 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
         <>
           <Segmented label="Exibição" value={p.mode} onChange={(v) => set({ mode: v })} options={[["grid", "Grade"], ["carousel", "Carrossel"]]} />
           {p.mode === "grid" && <Segmented label="Colunas" value={String(p.columns) as "2" | "3" | "4"} onChange={(v) => set({ columns: Number(v) })} options={[["2", "2"], ["3", "3"], ["4", "4"]]} />}
-          <button type="button" className="adm-btn-primary adm-btn-sm self-start" onClick={() => setGalleryOpen(true)}><Images size={14} /> Adicionar imagens</button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="adm-btn-primary adm-btn-sm" onClick={() => setGalleryOpen(true)}><Images size={14} /> Adicionar imagens</button>
+            {p.images.length > 0 && (
+              <button type="button" className="adm-btn-ghost adm-btn-sm text-red-600" onClick={() => confirm(`Remover todas as ${p.images.length} imagens desta galeria? (Os arquivos continuam na biblioteca de Mídia.)`) && set({ images: [] })}>
+                <Trash2 size={14} /> Remover todas
+              </button>
+            )}
+          </div>
           <ListEditor
             label={`Imagens (${p.images.length})`}
             items={p.images}
@@ -218,11 +225,15 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
                 {im.url ? <span className="h-12 w-12 shrink-0 overflow-hidden rounded"><FramedImage url={im.url} className="h-full w-full object-cover" /></span> : <div className="h-12 w-12 shrink-0 rounded bg-zinc-200" />}
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <input value={im.alt ?? ""} onChange={(e) => setIm({ ...im, alt: e.target.value })} placeholder="Descrição" className="adm-input" />
-                  <FrameButton url={im.url} onChange={(url) => setIm({ ...im, url })} aspect={p.mode === "carousel" ? "16 / 9" : "1 / 1"} />
+                  <div className="flex flex-wrap items-center gap-1">
+                    <FrameButton url={im.url} onChange={(url) => setIm({ ...im, url })} aspect={p.mode === "carousel" ? "16 / 9" : "1 / 1"} />
+                    <button type="button" className="adm-btn-ghost adm-btn-sm text-red-600" onClick={() => set({ images: p.images.filter((x) => x !== im) })}><Trash2 size={13} /> Remover</button>
+                  </div>
                 </div>
               </div>
             )}
           />
+          <span className="adm-help">“Remover” tira a foto só desta galeria. Para apagar o arquivo do servidor, use Mídia ou Armazenamento.</span>
           <MediaPickerModal open={galleryOpen} multiple onClose={() => setGalleryOpen(false)} onSelect={(items) => set({ images: [...p.images, ...items.map((m) => ({ url: m.url, alt: m.alt ?? "" }))] })} />
         </>
       );

@@ -250,6 +250,8 @@ Regras de acesso (RLS): visitante anônimo **lê** páginas publicadas e **inser
 - [x] FAQ (perguntas e respostas editáveis)
 - [x] Hero carrossel (fundo da seção “Carrossel de imagens”)
 - [x] Cortejos e Capacitações (mesma dinâmica de Eventos: páginas, listagem, menu)
+- [x] Galeria: remover fotos individualmente ou todas (ADM → bloco Galeria)
+- [x] ADM → Armazenamento: consumo de arquivos e banco (com limites do plano), por tipo/pasta/tabela, todas as mídias com “em uso/sem uso” e exclusão em lote
 - [x] Inscrição em capacitação sem login (nome, e-mail, telefone) + e-mail de confirmação; acompanhamento em ADM → Capacitações
 
 **Visual e layout**
