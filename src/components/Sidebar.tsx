@@ -14,6 +14,7 @@ const ITEMS = [
   { href: "/capacitacoes", label: "Capacitações", icon: GraduationCap, admin: false },
   { href: "/inscritos", label: "Inscritos", icon: Inbox, admin: true, badge: true },
   { href: "/metricas", label: "Métricas", icon: BarChart3, admin: true },
+  { href: "/capas", label: "Opções de capa", icon: ImageIcon, admin: true },
   { href: "/configuracoes", label: "Configurações", icon: Settings, admin: true },
   { href: "/usuarios", label: "Usuários", icon: Users, admin: true },
 ];
