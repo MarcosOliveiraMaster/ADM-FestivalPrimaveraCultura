@@ -6,6 +6,15 @@ import type { AppRole } from "@/shared/types";
 const ok = () => ({ ok: true as const });
 const fail = (error: string) => ({ ok: false as const, error });
 
+export interface InviteLink { email: string; link: string; expiresAt: string; emailSent: boolean }
+
+/** Gera (ou renova) o link único do convite, válido por 1 hora, e envia por e-mail. */
+async function issueInviteLink(supabase: Awaited<ReturnType<typeof requireAdmin>>["supabase"], email: string) {
+  const { data, error } = await supabase.functions.invoke("enviar-convite", { body: { email } });
+  if (error || !data?.link) return null;
+  return { email, link: data.link as string, expiresAt: data.expiresAt as string, emailSent: !!data.emailSent };
+}
+
 export async function inviteUser(email: string, role: AppRole) {
   const { supabase, user } = await requireAdmin();
   const e = email.trim().toLowerCase();
@@ -14,8 +23,18 @@ export async function inviteUser(email: string, role: AppRole) {
   if (existing) return fail("Essa pessoa já faz parte da equipe.");
   const { error } = await supabase.from("staff_invites").upsert({ email: e, role, invited_by: user.id });
   if (error) return fail(error.message);
+  const invite = await issueInviteLink(supabase, e);
   revalidatePath("/usuarios");
-  return ok();
+  if (!invite) return fail("Convite salvo, mas não foi possível gerar o link. Tente “Gerar novo link”.");
+  return { ok: true as const, invite };
+}
+
+export async function renewInvite(email: string) {
+  const { supabase } = await requireAdmin();
+  const invite = await issueInviteLink(supabase, email);
+  revalidatePath("/usuarios");
+  if (!invite) return fail("Não foi possível gerar o link.");
+  return { ok: true as const, invite };
 }
 
 export async function cancelInvite(email: string) {

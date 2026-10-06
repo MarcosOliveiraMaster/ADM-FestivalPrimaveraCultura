@@ -49,9 +49,13 @@ export function LoginForm() {
   );
 }
 
-export function SignupForm() {
+/**
+ * Primeiro acesso pelo convite: o e-mail já vem do link (token de 1 hora), a pessoa
+ * só informa nome e senha. A conta é criada já confirmada pela função "aceitar-convite".
+ */
+export function AcceptInviteForm({ token, email }: { token: string; email: string }) {
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [ok, setOk] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -61,30 +65,37 @@ export function SignupForm() {
     if (password.length < 8) return setError("A senha precisa ter pelo menos 8 caracteres.");
     setLoading(true);
     setError(null);
-    const { data, error } = await createClient().auth.signUp({
-      email: String(fd.get("email")).trim().toLowerCase(),
-      password,
-      options: { data: { full_name: String(fd.get("name")).trim() }, emailRedirectTo: `${window.location.origin}/auth/callback?next=/` },
-    });
-    setLoading(false);
-    if (error) return setError(translate(error.message));
-    if (data.user && data.user.identities?.length === 0) return setError(translate("already registered"));
-    setOk("Pronto! Enviamos um link de confirmação para o seu e-mail. Clique nele para ativar o acesso.");
+    const supabase = createClient();
+    const { data, error } = await supabase.functions.invoke("aceitar-convite", { body: { token, name: String(fd.get("name")).trim(), password } });
+    if (error || !data?.ok) {
+      let msg = "Não foi possível criar o acesso.";
+      try {
+        const ctx = (error as { context?: Response } | null)?.context;
+        if (ctx) msg = (await ctx.json()).error ?? msg;
+      } catch {}
+      setLoading(false);
+      return setError(msg);
+    }
+    const signIn = await supabase.auth.signInWithPassword({ email, password });
+    if (signIn.error) {
+      setLoading(false);
+      return setError("Conta criada! Entre com seu e-mail e a senha que você definiu.");
+    }
+    router.replace("/");
+    router.refresh();
   }
-  if (ok) return <Msg ok={ok} />;
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
       <div>
-        <h1 className="text-lg font-semibold">Primeiro acesso</h1>
-        <p className="mt-1 text-sm text-zinc-500">Use o e-mail em que você foi convidado pela administração.</p>
+        <h1 className="text-lg font-semibold">Criar seu acesso</h1>
+        <p className="mt-1 text-sm text-zinc-500">Você foi convidado(a) para a equipe. Defina seu nome e uma senha.</p>
       </div>
-      <label className="adm-label">Nome<input name="name" required className="adm-input" autoComplete="name" /></label>
-      <label className="adm-label">E-mail<input name="email" type="email" required className="adm-input" autoComplete="email" /></label>
+      <label className="adm-label">E-mail<input value={email} readOnly className="adm-input bg-zinc-50 text-zinc-600" /></label>
+      <label className="adm-label">Nome<input name="name" required minLength={3} className="adm-input" autoComplete="name" /></label>
       <label className="adm-label">Senha<input name="password" type="password" required minLength={8} className="adm-input" autoComplete="new-password" /></label>
       <label className="adm-label">Repita a senha<input name="password2" type="password" required minLength={8} className="adm-input" autoComplete="new-password" /></label>
       <Msg error={error} />
       <button className="adm-btn-primary" disabled={loading}>{loading ? "Criando…" : "Criar acesso"}</button>
-      <a href="/login" className="text-center text-sm text-zinc-500 hover:underline">Já tenho acesso</a>
     </form>
   );
 }
