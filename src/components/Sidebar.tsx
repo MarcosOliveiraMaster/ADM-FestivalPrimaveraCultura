@@ -1,7 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { BarChart3, ExternalLink, FileText, Image as ImageIcon, Inbox, LayoutDashboard, Menu, Settings, UserCircle, Users, X } from "lucide-react";
+import { Award, BarChart3, ExternalLink, FileText, GraduationCap, Image as ImageIcon, Inbox, LayoutDashboard, Menu, Settings, UserCircle, Users, X } from "lucide-react";
 import { SignOutButton } from "./SignOutButton";
 import type { AppRole } from "@/shared/types";
 import { BrandIcon } from "@/shared/render/BrandIcon";
@@ -10,6 +10,8 @@ const ITEMS = [
   { href: "/", label: "Painel", icon: LayoutDashboard, admin: false },
   { href: "/paginas", label: "Páginas e eventos", icon: FileText, admin: false },
   { href: "/midia", label: "Mídia", icon: ImageIcon, admin: false },
+  { href: "/participantes", label: "Participantes", icon: Award, admin: false },
+  { href: "/capacitacoes", label: "Capacitações", icon: GraduationCap, admin: false },
   { href: "/inscritos", label: "Inscritos", icon: Inbox, admin: true, badge: true },
   { href: "/metricas", label: "Métricas", icon: BarChart3, admin: true },
   { href: "/configuracoes", label: "Configurações", icon: Settings, admin: true },
