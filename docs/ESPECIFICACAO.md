@@ -228,39 +228,49 @@ Regras de acesso (RLS): visitante anônimo **lê** páginas publicadas e **inser
 
 ---
 
-## 9. Checklist de atualizações (reunião de 05/10)
+## 9. Checklist de atualizações (reunião de 05/10 + pedidos de 06/10)
 
-**Usuários e inscrições** — exige novas tabelas e login de visitantes (a confirmar antes de alterar o banco)
-- [ ] Área de login de usuários
-- [ ] Login social (Google)
-- [ ] Área de inscrição de eventos
-- [ ] E-mail de confirmação ao receber inscrição em evento
-- [ ] Notificação no Google Calendar após inscrição
-- [ ] Área de certificados
+**Usuários e inscrições**
+- [x] Área de login de usuários (site: /entrar, /minha-conta)
+- [x] Login social (Google) — falta ativar o provedor Google no Supabase
+- [x] Área de inscrição de eventos (bloco “Inscrição no evento”, vagas, cancelamento)
+- [x] E-mail de confirmação ao receber inscrição (Edge Function `confirmar-inscricao`) — falta a chave do Resend
+- [x] Google Agenda após inscrição (botão, link no e-mail e arquivo .ics)
+- [x] Área de certificados (presença marcada em Participantes → certificado com código de validação)
+
+**Equipe (ADM)**
+- [x] Domínios: login.festivalprimaveracultural.com.br (entrada) → adm.festivalprimaveracultural.com.br (painel)
+- [x] Convite com link único (token) válido por 1 hora, enviado por e-mail; e-mail já reconhecido; sem token não é possível criar conta
 
 **Conteúdo**
-- [x] Área de notícias: bloco **Notícias** (título, subtítulo e imagem, com redirecionamento para link externo)
-- [ ] Galeria exclusiva (imagens e vídeos) — depende do login de visitantes
-- [x] Vídeo da edição anterior com reprodução automática: bloco **Vídeo** → “Reproduzir automaticamente” (começa sem som)
-- [x] Rodapé: link do canal da OXE (Configurações → Redes; provisório `LinkCanalOxe.com.br` até o link oficial)
-
-**Elementos de página**
-- [x] FAQ: bloco **Perguntas frequentes** com perguntas e respostas editáveis no painel
+- [x] Notícias (bloco com link externo)
+- [x] Galeria exclusiva (seção “só logados”)
+- [x] Vídeo com reprodução automática sem som
+- [x] Rodapé: canal da OXE (provisório LinkCanalOxe.com.br)
+- [x] FAQ (perguntas e respostas editáveis)
+- [x] Hero carrossel (fundo da seção “Carrossel de imagens”)
+- [x] Cortejos e Capacitações (mesma dinâmica de Eventos: páginas, listagem, menu)
+- [x] Inscrição em capacitação sem login (nome, e-mail, telefone) + e-mail de confirmação; acompanhamento em ADM → Capacitações
 
 **Visual e layout**
-- [ ] Trocar fotos de capa (apresentar opções)
-- [x] Divisores entre seções: **onda** na seção (topo/base) ou bloco Divisor → Onda
-- [ ] Cor própria para cada página
-- [x] Efeito “onda” (com movimento opcional)
+- [x] Opções de capa (ADM → Opções de capa)
+- [x] Divisores em onda / efeito onda
+- [x] Cor própria para cada página (Configurações da página)
 - [ ] Referência visual: site “Cada Minuto” (Ricardo Mota)
 
 **SEO**
-- [ ] Editar SEO do site (ficou com “?”, precisa confirmar) — campos por página já existem em Configurações da página; ainda sem domínio próprio
+- [x] Domínio próprio: festivalprimaveracultural.com.br
+- [ ] Revisar títulos e descrições de cada página (campos em Configurações da página)
 
 **Fluxo de aprovação**
 1. [ ] Definir funções
 2. [ ] Aplicar copy
 3. [ ] Reunião de aprovação
 4. [ ] Definir novas mídias
+
+**Configurações externas pendentes (fora do código)**
+- [ ] Resend: criar conta, verificar o domínio e cadastrar os segredos `RESEND_API_KEY`, `EMAIL_FROM`, `SITE_URL`, `LOGIN_URL` no Supabase (Edge Functions → Secrets)
+- [ ] Supabase → Authentication → URL Configuration: Site URL e Redirect URLs dos três domínios
+- [ ] Supabase → Authentication → Providers → Google
 
 > Observação: navegadores só reproduzem vídeo automaticamente se ele estiver sem som; por isso o vídeo da edição anterior inicia mudo.
