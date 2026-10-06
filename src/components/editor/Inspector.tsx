@@ -94,6 +94,10 @@ export function SectionInspector({ section, onChange, onLayout, onMove, onDuplic
           </>
         )}
       </Group>
+      <Group title="Quem pode ver">
+        <Segmented label="Visibilidade" value={s.audience ?? "all"} onChange={(v) => set({ audience: v })} options={[["all", "Todos"], ["members", "🔒 Só logados"]]} />
+        <span className="adm-help">“Só logados” transforma a seção em conteúdo exclusivo (ex.: galeria exclusiva): visitantes sem login veem um convite para entrar.</span>
+      </Group>
       <Group title="Avançado">
         <Text label="Âncora (link interno)" value={s.anchor} onChange={(v) => set({ anchor: v.replace(/[^a-z0-9-]/gi, "").toLowerCase() })} placeholder="ex.: programacao" help={s.anchor ? `Link para esta seção: #${s.anchor}` : "Permite criar links como /#programacao no menu."} />
         <Segmented label="Mostrar em" value={s.hideOn} onChange={(v) => set({ hideOn: v })} options={[["none", "Todos"], ["mobile", "Só computador"], ["desktop", "Só celular"]]} />
@@ -328,6 +332,17 @@ function BlockFields({ block, set }: { block: Block; set: (patch: Record<string,
           <span className="adm-help">Deixe uma linha em branco na resposta para separar parágrafos. As perguntas também são enviadas ao Google (dados estruturados de FAQ).</span>
           <Toggle label="Primeira pergunta já aberta" checked={p.openFirst} onChange={(v) => set({ openFirst: v })} />
           <Toggle label="Abrir uma pergunta por vez" checked={p.single} onChange={(v) => set({ single: v })} help="Ao abrir uma pergunta, as outras se fecham." />
+        </>
+      );
+    }
+    case "registration": {
+      const p = block.props;
+      return (
+        <>
+          <Text label="Título" value={p.title} onChange={(v) => set({ title: v })} />
+          <Text label="Texto" multiline value={p.intro} onChange={(v) => set({ intro: v })} />
+          <Text label="Texto do botão" value={p.buttonLabel} onChange={(v) => set({ buttonLabel: v })} />
+          <span className="adm-help">Abra/feche as inscrições, defina vagas e carga horária em Configurações da página. O participante faz login (Google ou e-mail), recebe confirmação por e-mail com link para o Google Agenda e, após a presença marcada em Participantes, emite o certificado.</span>
         </>
       );
     }

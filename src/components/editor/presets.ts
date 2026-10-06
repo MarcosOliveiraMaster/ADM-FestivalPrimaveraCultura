@@ -41,6 +41,8 @@ export const SECTION_PRESETS: { id: string; label: string; description: string; 
   { id: "video", label: "Vídeo", description: "Vídeo do YouTube/Instagram centralizado", build: () => sec("Vídeo", "1", { padding: "lg", align: "center" }, [[b("heading", { text: "Assista", align: "center" }), b("video")]]) },
   { id: "programacao", label: "Programação", description: "Lista automática dos eventos", build: () => sec("Programação", "1", { padding: "lg", bgType: "color", bgColor: "#ffffff" }, [[b("schedule")]]) },
   { id: "info", label: "Data, hora e local", description: "Agenda com mapa", build: () => sec("Quando e onde", "1", { padding: "md" }, [[b("eventinfo")]]) },
+  { id: "inscricao", label: "Inscrição no evento", description: "Login, confirmação por e-mail e Google Agenda", build: () => sec("Inscrição", "1", { padding: "lg", anchor: "inscricao" }, [[b("registration")]]) },
+  { id: "galeria-exclusiva", label: "Galeria exclusiva", description: "Fotos e vídeos só para quem fez login", build: () => sec("Galeria exclusiva", "1", { padding: "lg", audience: "members" }, [[b("heading", { text: "Galeria exclusiva", align: "center" }), b("gallery"), b("video")]]) },
   { id: "formulario", label: "Formulário de interesse", description: "Coleta contatos de interessados", build: () => sec("Formulário", "1", { padding: "lg", anchor: "contato" }, [[b("form")]]) },
   { id: "faq", label: "Perguntas frequentes", description: "Perguntas e respostas", build: () => sec("Perguntas", "1", { padding: "lg" }, [[b("heading", { text: "Perguntas frequentes" }), b("faq")]]) },
   { id: "noticias", label: "Notícias", description: "Cards com link para matérias externas", build: () => sec("Notícias", "1", { padding: "lg" }, [[b("heading", { text: "Notícias" }), b("news")]]) },

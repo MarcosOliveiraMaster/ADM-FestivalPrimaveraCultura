@@ -23,6 +23,7 @@ export default async function EditPage({ params }: PageProps<"/paginas/[id]">) {
   const editorPage: EditorPage = {
     id: page.id, title: page.title, slug: page.slug, kind: page.kind, status: page.status, publish_at: page.publish_at, published_at: page.published_at,
     category: page.category, starts_at: page.starts_at, ends_at: page.ends_at, location: page.location, cover_url: page.cover_url, show_in_nav: page.show_in_nav, seo: page.seo ?? {},
+    color: page.color ?? null, registration_enabled: page.registration_enabled ?? false, capacity: page.capacity ?? null, certificate_hours: page.certificate_hours != null ? Number(page.certificate_hours) : null,
   };
   return (
     <Editor

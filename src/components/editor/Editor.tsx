@@ -272,8 +272,8 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
 
   // ---------- pré-visualização ----------
   const ctx = useMemo(
-    () => ({ mode: "preview" as const, pageId: page.id, settings, events, now: 0, page: { title: page.title, starts_at: page.starts_at, ends_at: page.ends_at, location: page.location } }),
-    [page.id, page.title, page.starts_at, page.ends_at, page.location, settings, events],
+    () => ({ mode: "preview" as const, pageId: page.id, settings, events, now: 0, page: { title: page.title, starts_at: page.starts_at, ends_at: page.ends_at, location: page.location, color: page.color } }),
+    [page.id, page.title, page.starts_at, page.ends_at, page.location, page.color, settings, events],
   );
   const [now] = useState(() => Date.now());
   const previewCtx = useMemo(() => ({ ...ctx, now }), [ctx, now]);
@@ -373,7 +373,7 @@ export function Editor({ page: initialPage, initialContent, publishedJson, setti
             }}
             onSubmitCapture={(e) => e.preventDefault()}
           >
-            <div className="@container fp-page min-h-[60vh]">
+            <div className="@container fp-page min-h-[60vh]" style={page.color ? ({ "--fp-primary": page.color } as React.CSSProperties) : undefined}>
               {content.sections.length === 0 && (
                 <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-10 text-center text-zinc-500">
                   <BrandIcon url={settings.brand.icon_url} className="h-12" />

@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import { Modal } from "../Modal";
 import { MediaField } from "../MediaLibrary";
-import { DateTime, Select, Text, Toggle } from "./fields";
+import { ColorInput, DateTime, NumberField, Select, Text, Toggle } from "./fields";
 import { slugify } from "@/shared/format";
 import { updatePageMeta, type PageMeta } from "@/app/(painel)/paginas/actions";
 import type { EditorPage } from "./Editor";
@@ -12,7 +12,7 @@ export function PageSettingsModal({ open, onClose, page, onSaved }: { open: bool
   const [lastOpen, setLastOpen] = useState(false);
   if (open !== lastOpen) {
     setLastOpen(open);
-    if (open) setM({ title: page.title, slug: page.slug, kind: page.kind, category: page.category, starts_at: page.starts_at, ends_at: page.ends_at, location: page.location, cover_url: page.cover_url, show_in_nav: page.show_in_nav, seo: page.seo ?? {} });
+    if (open) setM({ title: page.title, slug: page.slug, kind: page.kind, category: page.category, starts_at: page.starts_at, ends_at: page.ends_at, location: page.location, cover_url: page.cover_url, show_in_nav: page.show_in_nav, seo: page.seo ?? {}, color: page.color, registration_enabled: page.registration_enabled, capacity: page.capacity, certificate_hours: page.certificate_hours });
   }
   const [error, setError] = useState<string | null>(null);
   const [busy, start] = useTransition();
@@ -67,6 +67,8 @@ export function PageSettingsModal({ open, onClose, page, onSaved }: { open: bool
               <Toggle label="Mostrar no menu “Eventos”" checked={m.show_in_nav} onChange={(v) => set({ show_in_nav: v })} />
             </>
           )}
+          <ColorInput label="Cor da página" value={m.color ?? ""} onChange={(v) => set({ color: v || null })} />
+          <span className="adm-help -mt-3">Troca a cor principal (botões, títulos de destaque, ondas) só nesta página. Vazio = cor do tema.</span>
           {!home && <MediaField label="Imagem de capa" value={m.cover_url} onChange={(v) => set({ cover_url: v })} help="Aparece nos cards da programação. 1600×900 recomendado." folder="capas" aspect="16 / 10" />}
         </div>
         <div className="flex flex-col gap-4">
@@ -76,6 +78,14 @@ export function PageSettingsModal({ open, onClose, page, onSaved }: { open: bool
               <DateTime label="Início" value={m.starts_at} onChange={(v) => set({ starts_at: v || null })} help="Vazio = “Data em breve”." />
               <DateTime label="Término" value={m.ends_at} onChange={(v) => set({ ends_at: v || null })} />
               <Text label="Local" value={m.location} onChange={(v) => set({ location: v })} placeholder="A definir" />
+            </>
+          )}
+          {m.kind === "evento" && (
+            <>
+              <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Inscrições e certificado</div>
+              <Toggle label="Inscrições abertas" checked={m.registration_enabled} onChange={(v) => set({ registration_enabled: v })} help="Adicione o bloco “Inscrição no evento” na página para mostrar o botão." />
+              <NumberField label="Vagas (0 = sem limite)" value={m.capacity ?? 0} onChange={(v) => set({ capacity: v > 0 ? v : null })} min={0} />
+              <NumberField label="Carga horária do certificado (horas, 0 = não informar)" value={m.certificate_hours ?? 0} onChange={(v) => set({ certificate_hours: v > 0 ? v : null })} min={0} />
             </>
           )}
           <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Compartilhamento (SEO)</div>

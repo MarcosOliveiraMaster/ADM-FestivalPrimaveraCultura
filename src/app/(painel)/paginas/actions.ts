@@ -65,7 +65,7 @@ export async function duplicatePage(id: string): Promise<Result<string>> {
     .from("pages")
     .insert({
       title, slug, kind: p.kind, status: "draft", category: p.category, starts_at: p.starts_at, ends_at: p.ends_at, location: p.location,
-      cover_url: p.cover_url, show_in_nav: p.show_in_nav, seo: p.seo, sort_order: p.sort_order + 1, created_by: user.id, updated_by: user.id,
+      cover_url: p.cover_url, show_in_nav: p.show_in_nav, seo: p.seo, color: p.color, registration_enabled: false, capacity: p.capacity, certificate_hours: p.certificate_hours, sort_order: p.sort_order + 1, created_by: user.id, updated_by: user.id,
     })
     .select("id")
     .single();
@@ -147,6 +147,11 @@ export interface PageMeta {
   cover_url: string | null;
   show_in_nav: boolean;
   seo: { title?: string; description?: string; image?: string };
+  /** Cor própria da página (#rrggbb) ou null para usar a cor do tema. */
+  color: string | null;
+  registration_enabled: boolean;
+  capacity: number | null;
+  certificate_hours: number | null;
 }
 
 export async function updatePageMeta(id: string, meta: PageMeta): Promise<Result<string>> {
@@ -172,6 +177,10 @@ export async function updatePageMeta(id: string, meta: PageMeta): Promise<Result
       cover_url: meta.cover_url || null,
       show_in_nav: meta.show_in_nav,
       seo: meta.seo ?? {},
+      color: meta.color && /^#[0-9a-f]{6}$/i.test(meta.color) ? meta.color : null,
+      registration_enabled: meta.registration_enabled,
+      capacity: meta.capacity && meta.capacity > 0 ? Math.round(meta.capacity) : null,
+      certificate_hours: meta.certificate_hours && meta.certificate_hours > 0 ? meta.certificate_hours : null,
       updated_by: user.id,
     })
     .eq("id", id);
