@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { PageHeader, Container } from "@/components/PageHeader";
-import { formatBytes } from "@/lib/media";
+import { formatBytes } from "@/lib/bytes";
 import { StorageManager, type StorageFile } from "./StorageManager";
 
 export const metadata = { title: "Armazenamento" };

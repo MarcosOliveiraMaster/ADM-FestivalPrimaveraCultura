@@ -82,7 +82,7 @@ export const BLOCK_DEFAULTS: { [K in BlockType]: () => BlockMap[K] } = {
     single: false,
   }),
   registration: () => ({ title: "Inscreva-se", intro: "Faça login e garanta sua vaga. Você recebe a confirmação por e-mail.", buttonLabel: "Quero me inscrever" }),
-  training: () => ({ title: "Inscreva-se na capacitação", intro: "Preencha seus dados. Você recebe a confirmação por e-mail.", buttonLabel: "Fazer inscrição", successMessage: "Inscrição recebida! Enviamos a confirmação para o seu e-mail." }),
+  training: () => ({ title: "Formulário de inscrição", intro: "Preencha nome, e-mail e número. Você recebe a confirmação por e-mail.", buttonLabel: "Fazer inscrição", successMessage: "Inscrição recebida! Enviamos a confirmação para o seu e-mail." }),
   news: () => ({ items: [{ title: "Título da notícia", subtitle: "", image: "", url: "https://", source: "" }], columns: 3, featured: true }),
   logos: () => ({ title: "Apoio", items: [], grayscale: false }),
   spacer: () => ({ size: "md" }),
@@ -109,6 +109,14 @@ export function relayout(section: Section, layout: SectionLayout): Section {
   const columns: Block[][] = Array.from({ length: cols }, (_, i) => [...(section.columns[i] ?? [])]);
   for (let i = cols; i < section.columns.length; i++) columns[cols - 1].push(...section.columns[i]);
   return { ...section, layout, columns };
+}
+
+/** Capacitações sempre exibem o formulário de inscrição: se a página não tiver o bloco, ele é acrescentado ao final. */
+export function withTrainingForm(content: PageContent): PageContent {
+  const has = content.sections.some((s) => s.columns.some((c) => c.some((bl) => bl.type === "training")));
+  if (has) return content;
+  const section = { ...newSection("1", [[newBlock("training")]]), style: { ...DEFAULT_SECTION_STYLE, padding: "lg" as const, anchor: "inscricao" }, name: "Inscrição" };
+  return { ...content, sections: [...content.sections, section] };
 }
 
 export function emptyContent(): PageContent {

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Download, Pencil } from "lucide-react";
+import { Download, Mail, Pencil } from "lucide-react";
 import { requireStaff } from "@/lib/auth";
 import { PageHeader, Container } from "@/components/PageHeader";
 import { formatRange } from "@/shared/format";
@@ -25,6 +25,7 @@ export default async function TrainingRegistrations({ params }: PageProps<"/capa
         actions={
           <>
             <a href="/capacitacoes" className="adm-btn-ghost">← Capacitações</a>
+            {profile.role === "admin" && <a href={`/comunicados?publico=capacitacao:${page.id}`} className="adm-btn-primary"><Mail size={16} /> Enviar mensagem aos inscritos</a>}
             <ResendButton kind="capacitacao" pageId={page.id} pending={list.filter((r) => !r.email_sent_at).length} />
             <a href={`/paginas/${page.id}`} className="adm-btn-secondary"><Pencil size={16} /> Editar página</a>
             <a href={`/capacitacoes/csv?page=${page.id}`} className="adm-btn-secondary"><Download size={16} /> Exportar (CSV)</a>

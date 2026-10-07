@@ -50,7 +50,7 @@ export function TrainingForm({ props: p, pageId, preview }: { props: TrainingFor
       <label>Nome completo<input name="name" required minLength={2} autoComplete="name" /></label>
       <div className="grid gap-4 @xl:grid-cols-2">
         <label>E-mail<input name="email" type="email" required autoComplete="email" /></label>
-        <label>Telefone / WhatsApp<input name="phone" type="tel" required autoComplete="tel" placeholder="(82) 9 0000-0000" /></label>
+        <label>Número (telefone / WhatsApp)<input name="phone" type="tel" required autoComplete="tel" placeholder="(82) 9 0000-0000" /></label>
       </div>
       <input name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
       <label className="fp-check"><input type="checkbox" name="consent" required /> Autorizo o uso dos meus dados para a organização da capacitação (LGPD).</label>
