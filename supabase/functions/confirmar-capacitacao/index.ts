@@ -2,8 +2,9 @@
 // Chamado pelo site logo após a inscrição; só envia uma vez e só para inscrições
 // criadas nos últimos 15 minutos (não serve para disparar e-mails arbitrários).
 //
-// Segredos: RESEND_API_KEY, EMAIL_FROM, SITE_URL
+// Segredos: RESEND_API_KEY (BREVO_API_KEY opcional como reserva), EMAIL_FROM, SITE_URL
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { hasEmailProvider, sendEmail } from "./email.ts";
 
 const TZ = "America/Sao_Paulo";
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
@@ -24,10 +25,15 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!r) return json({ error: "Inscrição não encontrada" }, 404);
     if (r.email_sent_at) return json({ ok: true, alreadySent: true });
-    if (Date.now() - new Date(r.created_at).getTime() > 15 * 60 * 1000) return json({ error: "Inscrição antiga" }, 400);
+    // Fora da janela de 15 minutos, só a equipe (painel) pode reenviar.
+    if (Date.now() - new Date(r.created_at).getTime() > 15 * 60 * 1000) {
+      const asCaller = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } } });
+      const { data: who } = await asCaller.auth.getUser();
+      const { data: staff } = who.user ? await admin.from("profiles").select("id").eq("id", who.user.id).maybeSingle() : { data: null };
+      if (!staff) return json({ error: "Inscrição antiga" }, 400);
+    }
 
-    const apiKey = Deno.env.get("RESEND_API_KEY");
-    if (!apiKey) return json({ error: "RESEND_API_KEY não configurada" }, 503);
+    if (!hasEmailProvider()) return json({ error: "Envio de e-mail não configurado" }, 503);
     const { data: s } = await admin.from("site_settings").select("festival_name").eq("id", 1).maybeSingle();
     const festival = s?.festival_name ?? "Festival da Primavera";
     const p = (r as unknown as { pages: { title: string; slug: string; starts_at: string | null; ends_at: string | null; location: string | null } }).pages;
@@ -50,13 +56,10 @@ Deno.serve(async (req) => {
         <p>${agenda ? btn(agenda, "Adicionar ao Google Agenda") : ""}${btn(`${site}/capacitacoes/${p.slug}`, "Ver capacitação")}</p>
         <p style="font-size:13px;color:#777">Se você não fez esta inscrição, ignore este e-mail.</p>
       </div>`;
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: Deno.env.get("EMAIL_FROM") ?? `${festival} <onboarding@resend.dev>`, to: [r.email], subject: `Inscrição confirmada: ${p.title}`, html }),
-    });
-    if (!res.ok) {
-      console.error("resend", res.status, await res.text());
+    try {
+      await sendEmail({ to: r.email, subject: `Inscrição confirmada: ${p.title}`, html, fromName: festival });
+    } catch (e) {
+      console.error(e);
       return json({ error: "Falha no envio" }, 502);
     }
     await admin.from("training_registrations").update({ email_sent_at: new Date().toISOString() }).eq("id", r.id);

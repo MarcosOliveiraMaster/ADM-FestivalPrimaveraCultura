@@ -5,7 +5,7 @@ import { Award, Trash2 } from "lucide-react";
 import { formatDateTime } from "@/shared/format";
 import { deleteRegistration, setAttendance } from "./actions";
 
-export interface AttendanceRow { id: string; full_name: string; email: string; attended: boolean; certificate_code: string; created_at: string }
+export interface AttendanceRow { id: string; full_name: string; email: string; attended: boolean; certificate_code: string; created_at: string; email_sent_at: string | null }
 
 export function AttendanceTable({ rows, isAdmin, siteUrl }: { rows: AttendanceRow[]; isAdmin: boolean; siteUrl: string }) {
   const router = useRouter();
@@ -35,7 +35,7 @@ export function AttendanceTable({ rows, isAdmin, siteUrl }: { rows: AttendanceRo
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <div className="adm-card overflow-x-auto">
         <table className="adm-table">
-          <thead><tr><th>Presença</th><th>Participante</th><th className="hidden md:table-cell">Inscrição</th><th>Certificado</th><th /></tr></thead>
+          <thead><tr><th>Presença</th><th>Participante</th><th className="hidden md:table-cell">Inscrição</th><th className="hidden sm:table-cell">Confirmação</th><th>Certificado</th><th /></tr></thead>
           <tbody>
             {list.map((r) => (
               <tr key={r.id}>
@@ -47,6 +47,7 @@ export function AttendanceTable({ rows, isAdmin, siteUrl }: { rows: AttendanceRo
                 </td>
                 <td><div className="font-medium">{r.full_name}</div><div className="text-xs text-zinc-500">{r.email}</div></td>
                 <td className="hidden text-xs text-zinc-500 md:table-cell">{formatDateTime(r.created_at)}</td>
+                <td className="hidden text-xs sm:table-cell">{r.email_sent_at ? <span className="text-brand-700">e-mail enviado</span> : <span className="text-amber-700">não enviado</span>}</td>
                 <td className="text-xs">
                   {r.attended ? <a href={`${siteUrl}/certificado/${r.certificate_code}`} target="_blank" rel="noopener noreferrer" className="text-brand-700 hover:underline">{r.certificate_code}</a> : <span className="text-zinc-400">após presença</span>}
                 </td>

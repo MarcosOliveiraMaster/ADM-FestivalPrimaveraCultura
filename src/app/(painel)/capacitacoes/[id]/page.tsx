@@ -4,6 +4,7 @@ import { requireStaff } from "@/lib/auth";
 import { PageHeader, Container } from "@/components/PageHeader";
 import { formatRange } from "@/shared/format";
 import { TrainingTable, type TrainingRow } from "../TrainingTable";
+import { ResendButton } from "@/components/ResendButton";
 
 export const metadata = { title: "Capacitações" };
 
@@ -24,6 +25,7 @@ export default async function TrainingRegistrations({ params }: PageProps<"/capa
         actions={
           <>
             <a href="/capacitacoes" className="adm-btn-ghost">← Capacitações</a>
+            <ResendButton kind="capacitacao" pageId={page.id} pending={list.filter((r) => !r.email_sent_at).length} />
             <a href={`/paginas/${page.id}`} className="adm-btn-secondary"><Pencil size={16} /> Editar página</a>
             <a href={`/capacitacoes/csv?page=${page.id}`} className="adm-btn-secondary"><Download size={16} /> Exportar (CSV)</a>
           </>

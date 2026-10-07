@@ -4,11 +4,12 @@
 // Ela só envia para a própria inscrição de quem chamou (RLS) e só uma vez (email_sent_at).
 //
 // Segredos (Supabase → Edge Functions → Secrets):
-//   RESEND_API_KEY   chave da conta Resend (obrigatória)
+//   RESEND_API_KEY   chave da conta Resend (BREVO_API_KEY opcional como reserva)
 //   EMAIL_FROM       remetente, ex.: "Festival da Primavera <contato@seudominio.com.br>"
 //                    (sem domínio verificado no Resend use "onboarding@resend.dev", só envia para o dono da conta)
 //   SITE_URL         endereço do site público, ex.: https://festival.vercel.app (para os links do e-mail)
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { hasEmailProvider, sendEmail } from "./email.ts";
 
 const TZ = "America/Sao_Paulo";
 const cors = {
@@ -51,8 +52,7 @@ Deno.serve(async (req) => {
     if (!r) return json({ error: "Inscrição não encontrada" }, 404);
     if (r.email_sent_at) return json({ ok: true, alreadySent: true });
 
-    const apiKey = Deno.env.get("RESEND_API_KEY");
-    if (!apiKey) return json({ error: "RESEND_API_KEY não configurada" }, 503);
+    if (!hasEmailProvider()) return json({ error: "Envio de e-mail não configurado" }, 503);
 
     const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: settings } = await admin.from("site_settings").select("festival_name").eq("id", 1).maybeSingle();
@@ -90,19 +90,16 @@ Deno.serve(async (req) => {
         <p style="font-size:14px;color:#555">Depois do evento, com a presença confirmada pela organização, seu certificado fica disponível em ${site ? `<a href="${esc(site)}/minha-conta">Minha conta</a>` : "Minha conta"}.</p>
       </div>`;
 
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: Deno.env.get("EMAIL_FROM") ?? `${festival} <onboarding@resend.dev>`,
-        to: [r.email],
+    try {
+      await sendEmail({
+        to: r.email,
         subject: `Inscrição confirmada: ${p.title}`,
         html,
+        fromName: festival,
         attachments: ics ? [{ filename: "evento.ics", content: btoa(String.fromCharCode(...new TextEncoder().encode(ics))) }] : undefined,
-      }),
-    });
-    if (!res.ok) {
-      console.error("resend", res.status, await res.text());
+      });
+    } catch (e) {
+      console.error(e);
       return json({ error: "Falha no envio do e-mail" }, 502);
     }
     await admin.from("registrations").update({ email_sent_at: new Date().toISOString() }).eq("id", r.id);

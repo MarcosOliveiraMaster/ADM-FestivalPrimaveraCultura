@@ -2,8 +2,9 @@
 // Só administradores podem chamar. Devolve o link para ser copiado no painel
 // também (útil se o e-mail ainda não estiver configurado).
 //
-// Segredos: RESEND_API_KEY, EMAIL_FROM, LOGIN_URL (ex.: https://login.festivalprimaveracultural.com.br)
+// Segredos: RESEND_API_KEY (BREVO_API_KEY opcional), EMAIL_FROM, LOGIN_URL (ex.: https://login.festivalprimaveracultural.com.br)
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { hasEmailProvider, sendEmail } from "./email.ts";
 
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
@@ -41,8 +42,7 @@ Deno.serve(async (req) => {
     const link = `${login}/primeiro-acesso?token=${token}`;
 
     let emailSent = false;
-    const apiKey = Deno.env.get("RESEND_API_KEY");
-    if (apiKey) {
+    if (hasEmailProvider()) {
       const { data: s } = await admin.from("site_settings").select("festival_name").eq("id", 1).maybeSingle();
       const festival = s?.festival_name ?? "Festival da Primavera";
       const papel = invite.role === "admin" ? "administrador(a)" : "editor(a)";
@@ -53,13 +53,12 @@ Deno.serve(async (req) => {
           <p><a href="${esc(link)}" style="display:inline-block;background:#2f6f4f;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:bold">Criar minha conta</a></p>
           <p style="font-size:14px;color:#555">O link é pessoal e vale por <strong>1 hora</strong>. Se expirar, peça um novo convite.</p>
         </div>`;
-      const r = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from: Deno.env.get("EMAIL_FROM") ?? `${festival} <onboarding@resend.dev>`, to: [e], subject: `Convite: painel do ${festival}`, html }),
-      });
-      emailSent = r.ok;
-      if (!r.ok) console.error("resend", r.status, await r.text());
+      try {
+        await sendEmail({ to: e, subject: `Convite: painel do ${festival}`, html, fromName: festival });
+        emailSent = true;
+      } catch (err) {
+        console.error(err);
+      }
     }
     return json({ ok: true, link, expiresAt: expires.toISOString(), emailSent });
   } catch (err) {
