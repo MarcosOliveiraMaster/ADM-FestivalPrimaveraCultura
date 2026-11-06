@@ -252,6 +252,7 @@ Regras de acesso (RLS): visitante anônimo **lê** páginas publicadas e **inser
 - [x] Cortejos e Capacitações (mesma dinâmica de Eventos: páginas, listagem, menu)
 - [x] Galeria: remover fotos individualmente ou todas (ADM → bloco Galeria)
 - [x] ADM → Armazenamento: consumo de arquivos e banco (com limites do plano), por tipo/pasta/tabela, todas as mídias com “em uso/sem uso” e exclusão em lote
+- [x] Mídia → aba “Links do Google Drive”: pastas públicas do Drive (imagens e PDFs, sem subpastas) em sanfona com busca, atualizar, abrir no Drive e remover; arquivos exibidos direto do Drive, disponíveis em todos os seletores de mídia; botões e listas de links podem apontar para PDFs
 - [x] Inscrição em capacitação sem login (nome, e-mail, telefone) + e-mail de confirmação; acompanhamento em ADM → Capacitações
 
 **Visual e layout**
