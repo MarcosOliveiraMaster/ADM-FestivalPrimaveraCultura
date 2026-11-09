@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { AlignCenter, AlignLeft, AlignRight, ArrowDown, ArrowUp, Copy, Images, Trash2 } from "lucide-react";
+import { AlignCenter, AlignLeft, AlignRight, ArrowDown, ArrowUp, Copy, FileText, Images, Trash2 } from "lucide-react";
+import type { MediaItem } from "@/lib/media";
 import type { Block, BlockMap, BlockType, Section, SectionStyle } from "@/shared/types";
 import { LAYOUTS, blockLabel } from "@/shared/blocks";
 import { videoEmbedUrl } from "@/shared/format";
@@ -12,6 +13,17 @@ import { formatBytes } from "@/lib/media";
 import { ColorInput, DateTime, ListEditor, NumberField, Segmented, Select, Text, Toggle } from "./fields";
 
 const ALIGN_OPTS = [["left", <AlignLeft key="l" size={14} />], ["center", <AlignCenter key="c" size={14} />], ["right", <AlignRight key="r" size={14} />]] as const;
+
+/** Botão que abre a biblioteca (uploads ou Google Drive) só com PDFs e devolve o arquivo escolhido. */
+function PdfPicker({ onPick }: { onPick: (item: MediaItem) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" className="adm-btn-secondary adm-btn-sm self-start" onClick={() => setOpen(true)}><FileText size={14} /> Escolher PDF</button>
+      <MediaPickerModal open={open} kind="pdf" onClose={() => setOpen(false)} onSelect={(items) => items[0] && onPick(items[0])} />
+    </>
+  );
+}
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -41,7 +53,8 @@ function Actions({ onUp, onDown, onDuplicate, onDelete, extra }: { onUp: () => v
 function useImageRemoval(pageId?: string) {
   const [notice, setNotice] = useState<string | null>(null);
   function confirmAndPurge(removed: string[]): boolean {
-    const urls = removed.filter(Boolean);
+    // Só arquivos enviados à plataforma são apagados; imagens do Google Drive apenas saem da página.
+    const urls = removed.filter((u) => u && u.includes("/storage/v1/object/public/"));
     if (!urls.length) return true;
     if (!confirm(`Remover ${urls.length > 1 ? `${urls.length} imagens` : "esta imagem"} e apagar do servidor?\n\nO espaço é liberado na hora. Se a imagem estiver em uso em outra página, o arquivo é mantido. Publique a página para atualizar o site.`)) return false;
     setNotice("Apagando do servidor…");
@@ -291,6 +304,7 @@ function BlockFields({ block, set, pageId }: { block: Block; set: (patch: Record
         <>
           <Text label="Texto do botão" value={p.label} onChange={(v) => set({ label: v })} />
           <Text label="Link" value={p.href} onChange={(v) => set({ href: v })} placeholder="https://, /eventos, #contato, https://wa.me/55…" />
+          <PdfPicker onPick={(m) => set({ href: m.url, newTab: true })} />
           <Toggle label="Abrir em nova aba" checked={p.newTab} onChange={(v) => set({ newTab: v })} />
           <Segmented label="Estilo" value={p.variant} onChange={(v) => set({ variant: v })} options={[["primary", "Principal"], ["secondary", "Secundário"], ["outline", "Contorno"]]} />
           <Segmented label="Tamanho" value={p.size ?? "md"} onChange={(v) => set({ size: v })} options={[["md", "Normal"], ["lg", "Grande"]]} />
@@ -310,6 +324,7 @@ function BlockFields({ block, set, pageId }: { block: Block; set: (patch: Record
             <>
               <input value={it.title} onChange={(e) => setIt({ ...it, title: e.target.value })} placeholder="Título" className="adm-input" />
               <input value={it.url} onChange={(e) => setIt({ ...it, url: e.target.value })} placeholder="https://" className="adm-input" />
+              <PdfPicker onPick={(m) => setIt({ ...it, url: m.url, title: it.title === "Novo link" ? m.alt || it.title : it.title })} />
               <input value={it.description ?? ""} onChange={(e) => setIt({ ...it, description: e.target.value })} placeholder="Descrição (opcional)" className="adm-input" />
             </>
           )}

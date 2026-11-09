@@ -35,6 +35,14 @@ Em **Authentication → URL Configuration** do projeto Supabase:
 
 Sem isso, os links de confirmação e de recuperação de senha enviados por e-mail não voltam para o painel.
 
+## Google Drive na biblioteca de mídia
+
+A aba **Mídia → Links do Google Drive** lista as imagens e PDFs de pastas públicas do Drive (só o primeiro nível, sem subpastas). Nada é copiado para o armazenamento: o site exibe os arquivos direto do Drive.
+
+1. No [Google Cloud Console](https://console.cloud.google.com/), crie um projeto, ative a **Google Drive API** e crie uma **chave de API** (Credenciais → Criar credenciais → Chave de API). Em "Restrições da API", deixe só a Google Drive API. Não use restrição por site (referenciador): a chamada é feita pelo servidor.
+2. Cadastre a chave como variável de ambiente `GOOGLE_DRIVE_API_KEY` no projeto do painel na **Vercel** (Settings → Environment Variables) e no `.env.local` para desenvolvimento. Um secret do GitHub sozinho não chega ao app em execução.
+3. As pastas precisam estar compartilhadas como **"Qualquer pessoa com o link"**.
+
 ## Rodar localmente
 
 ```bash

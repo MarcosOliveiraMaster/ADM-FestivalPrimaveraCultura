@@ -8,7 +8,7 @@ export default async function MediaPage() {
   await requireStaff();
   return (
     <>
-      <PageHeader title="Biblioteca de mídia" description="Imagens, vídeos, PDFs e fontes usados no site. Clique em um arquivo para editar o texto alternativo, mudar de pasta ou excluir." />
+      <PageHeader title="Biblioteca de mídia" description="Imagens, vídeos, PDFs e fontes usados no site. Na aba “Links do Google Drive”, adicione pastas públicas do Drive: as imagens e PDFs aparecem aqui sem ocupar o armazenamento." />
       <Container>
         <div className="adm-card p-5">
           <MediaLibrary />

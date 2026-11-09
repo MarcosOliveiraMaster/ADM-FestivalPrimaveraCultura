@@ -1,11 +1,12 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, Copy, FileText, Film, Search, Trash2, Type, Upload } from "lucide-react";
+import { Check, Copy, FileText, Film, FolderOpen, Search, Trash2, Type, Upload } from "lucide-react";
 import { ACCEPT, deleteMedia, formatBytes, listMedia, matchesKind, updateMedia, uploadFile, type MediaItem, type MediaKind } from "@/lib/media";
 import { Modal } from "./Modal";
 import { FrameModal, type Fit } from "./FrameEditor";
 import { FramedImage } from "@/shared/render/FramedImage";
 import { cleanSrc, isFramed } from "@/shared/image";
+import { DriveLibrary } from "./DriveLibrary";
 
 function Thumb({ m }: { m: MediaItem }) {
   if (m.mime?.startsWith("image/")) {
@@ -21,7 +22,43 @@ function Thumb({ m }: { m: MediaItem }) {
   );
 }
 
-export function MediaLibrary({ kind = "any", onSelect, multiple, defaultFolder = "geral" }: { kind?: MediaKind; onSelect?: (items: MediaItem[]) => void; multiple?: boolean; defaultFolder?: string }) {
+type LibraryProps = { kind?: MediaKind; onSelect?: (items: MediaItem[]) => void; multiple?: boolean; defaultFolder?: string };
+
+/** Biblioteca de mídia com duas abas: arquivos enviados e pastas do Google Drive (só imagens e PDFs). */
+export function MediaLibrary(props: LibraryProps) {
+  const kind = props.kind ?? "any";
+  const driveOk = kind === "any" || kind === "image" || kind === "pdf";
+  const [tab, setTab] = useState<"uploads" | "drive">("uploads");
+  const current = driveOk ? tab : "uploads";
+  return (
+    <div className="flex flex-col gap-4">
+      {driveOk && (
+        <div className="flex gap-1 border-b border-zinc-200" role="tablist">
+          {(
+            [
+              ["uploads", "Uploads de mídia", Upload],
+              ["drive", "Links do Google Drive", FolderOpen],
+            ] as const
+          ).map(([id, label, Icon]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={current === id}
+              onClick={() => setTab(id)}
+              className={`-mb-px flex items-center gap-2 border-b-2 px-3 py-2 text-sm font-medium transition ${current === id ? "border-brand-500 text-brand-700" : "border-transparent text-zinc-500 hover:text-zinc-800"}`}
+            >
+              <Icon size={16} /> {label}
+            </button>
+          ))}
+        </div>
+      )}
+      {current === "drive" ? <DriveLibrary kind={kind} onSelect={props.onSelect} multiple={props.multiple} /> : <UploadsLibrary {...props} />}
+    </div>
+  );
+}
+
+function UploadsLibrary({ kind = "any", onSelect, multiple, defaultFolder = "geral" }: LibraryProps) {
   const [items, setItems] = useState<MediaItem[] | null>(null);
   const [q, setQ] = useState("");
   const [folder, setFolder] = useState<string>("todas");
