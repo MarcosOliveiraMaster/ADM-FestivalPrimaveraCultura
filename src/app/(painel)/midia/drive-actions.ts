@@ -7,8 +7,9 @@ const FOLDER_MIME = "application/vnd.google-apps.folder";
 
 type Result = { ok: true; driveId: string; name: string; url: string; files: DriveFileInput[] } | { ok: false; error: string };
 
-async function drive<T>(url: string): Promise<{ ok: true; data: T } | { ok: false; status: number; message: string }> {
-  const res = await fetch(url, { cache: "no-store" });
+/** A chave vai no cabeçalho X-Goog-Api-Key (não na URL), para não aparecer em logs. */
+async function drive<T>(url: string, key: string): Promise<{ ok: true; data: T } | { ok: false; status: number; message: string }> {
+  const res = await fetch(url, { cache: "no-store", headers: { "X-Goog-Api-Key": key } });
   if (res.ok) return { ok: true, data: (await res.json()) as T };
   const body = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
   return { ok: false, status: res.status, message: body?.error?.message ?? res.statusText };
@@ -25,10 +26,11 @@ export async function fetchDriveFolder(link: string): Promise<Result> {
   const id = parseFolderId(link);
   if (!id) return { ok: false, error: "Link inválido. Cole o link de uma pasta do Google Drive (drive.google.com/drive/folders/…)." };
 
-  const common = `supportsAllDrives=true&key=${encodeURIComponent(key)}`;
-  const meta = await drive<{ id: string; name: string; mimeType: string }>(`${API}/${id}?fields=id,name,mimeType&${common}`);
+  const common = "supportsAllDrives=true";
+  const meta = await drive<{ id: string; name: string; mimeType: string }>(`${API}/${id}?fields=id,name,mimeType&${common}`, key);
   if (!meta.ok) {
     if (meta.status === 404) return { ok: false, error: "Pasta não encontrada. Confira o link e se ela está compartilhada como “Qualquer pessoa com o link”." };
+    if (meta.status === 400 && /api key/i.test(meta.message)) return { ok: false, error: "A chave da API do Google Drive é inválida. Confira GOOGLE_DRIVE_API_KEY no servidor." };
     if (meta.status === 403) return { ok: false, error: `O Google recusou o acesso: ${meta.message}` };
     return { ok: false, error: `Erro ao ler a pasta no Google Drive: ${meta.message}` };
   }
@@ -42,7 +44,7 @@ export async function fetchDriveFolder(link: string): Promise<Result> {
     const r = await drive<{
       nextPageToken?: string;
       files: { id: string; name: string; mimeType: string; size?: string; createdTime?: string; imageMediaMetadata?: { width?: number; height?: number } }[];
-    }>(`${API}?q=${encodeURIComponent(q)}&fields=${encodeURIComponent(fields)}&pageSize=1000&orderBy=name&includeItemsFromAllDrives=true&${common}${pageToken ? `&pageToken=${pageToken}` : ""}`);
+    }>(`${API}?q=${encodeURIComponent(q)}&fields=${encodeURIComponent(fields)}&pageSize=1000&orderBy=name&includeItemsFromAllDrives=true&${common}${pageToken ? `&pageToken=${pageToken}` : ""}`, key);
     if (!r.ok) return { ok: false, error: `Erro ao listar a pasta: ${r.message}` };
     for (const f of r.data.files) {
       files.push({

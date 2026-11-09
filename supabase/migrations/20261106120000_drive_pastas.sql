@@ -26,6 +26,7 @@ create table if not exists public.drive_files (
   unique (folder_id, drive_id)
 );
 create index if not exists drive_files_folder_idx on public.drive_files (folder_id, name);
+create index if not exists drive_folders_created_by_idx on public.drive_folders (created_by);
 
 alter table public.drive_folders enable row level security;
 alter table public.drive_files enable row level security;
