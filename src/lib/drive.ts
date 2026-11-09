@@ -10,7 +10,17 @@ export interface DriveFolder {
   drive_id: string;
   name: string;
   url: string;
+  /** Pasta imediatamente acima (null na pasta principal). */
+  parent_id: string | null;
+  /** Pasta principal da árvore (null na própria principal). */
+  root_id: string | null;
+  /** Principal adicionada com "varredura completa" (inclui subpastas). */
+  recursive: boolean;
+  /** Arquivos só desta pasta. */
   file_count: number;
+  /** Arquivos desta pasta + todas as de dentro. */
+  total_count: number;
+  /** Arquivo mais recente desta pasta + todas as de dentro. */
   last_upload_at: string | null;
   synced_at: string | null;
   created_at: string;
@@ -30,6 +40,11 @@ export interface DriveFile {
 
 /** Dados de um arquivo como vêm da API do Drive (antes de salvar). */
 export type DriveFileInput = Pick<DriveFile, "drive_id" | "name" | "mime" | "size_bytes" | "width" | "height" | "drive_created_at">;
+
+/** Resposta de GET /midia/drive (uma pasta lida no Drive). */
+export type DriveReadResult =
+  | { ok: true; driveId: string; name: string; url: string; files: DriveFileInput[]; subfolders: { id: string; name: string }[] }
+  | { ok: false; error: string };
 
 /** Extrai o ID da pasta de um link do Drive (ou aceita o próprio ID). */
 export function parseFolderId(input: string): string | null {
