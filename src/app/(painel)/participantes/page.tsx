@@ -10,7 +10,7 @@ export default async function ParticipantesPage() {
   const pages = await areaPagesWithCounts(supabase, "evento");
   return (
     <>
-      <PageHeader title="Participantes dos eventos" description="Inscrições feitas no site (com login). Marque a presença para liberar o certificado." />
+      <PageHeader title="Participantes dos eventos" description="Inscrições feitas no site (com login). Marque a presença para liberar o certificado e enviá-lo por e-mail." />
       <Container>
         <AreaPagesList pages={pages} base="/participantes" showAttended empty="Nenhum evento ainda. Crie em Páginas e eventos." />
       </Container>

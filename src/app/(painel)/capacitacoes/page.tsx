@@ -26,7 +26,7 @@ export default async function CapacitacoesPage() {
           <div className="adm-card p-5"><div className="text-xs uppercase tracking-wide text-zinc-500">Inscrições</div><div className="text-2xl font-semibold">{total}</div><div className="text-sm text-zinc-500">{vagas ? `${vagas} vagas ofertadas` : "sem limite de vagas definido"}</div></div>
           <div className="adm-card p-5"><div className="text-xs uppercase tracking-wide text-zinc-500">Mais procurada</div><div className="truncate text-lg font-semibold">{total ? [...pages].sort((a, b) => b.total - a.total)[0].title : "—"}</div><div className="text-sm text-zinc-500">{total ? `${Math.max(...pages.map((p) => p.total))} inscrição(ões)` : "nenhuma inscrição ainda"}</div></div>
         </div>
-        <AreaPagesList pages={pages} base="/capacitacoes" empty="Nenhuma capacitação ainda. Em Páginas e eventos → Nova página, escolha o tipo Capacitação." />
+        <AreaPagesList showAttended pages={pages} base="/capacitacoes" empty="Nenhuma capacitação ainda. Em Páginas e eventos → Nova página, escolha o tipo Capacitação." />
       </Container>
     </>
   );
