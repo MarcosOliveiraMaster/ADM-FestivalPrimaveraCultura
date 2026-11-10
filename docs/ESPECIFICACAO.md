@@ -238,6 +238,9 @@ Regras de acesso (RLS): visitante anônimo **lê** páginas publicadas e **inser
 - [x] Google Agenda após inscrição (botão, link no e-mail e arquivo .ics)
 - [x] Área de certificados (presença marcada em Participantes → certificado com código de validação)
 - [x] Certificado por e-mail (Edge Function `enviar-certificado`): ao marcar presença (opção ligada por padrão), por participante (enviar/reenviar) ou em lote ("Enviar certificados pendentes"); status "enviado" na tabela e no CSV
+- [x] Inscrição sem login (nome, e-mail, telefone, CPF opcional) em eventos, cortejos e capacitações; botão "Entrar" do site oculto (área do participante em espera)
+- [x] Modelo de certificado editável (editor visual: fundo, textos arrastáveis com fonte/tamanho/cor/estilo, variáveis {{nome}}, {{cpf}}…, trechos opcionais [[ ]], QR code de validação, A4 paisagem/retrato), padrão do festival + por página
+- [x] "Enviar certificados por e-mail" (link) e "Download certificados" (ZIP com um PDF por pessoa), com popup de confirmação (presentes, ordem alfabética, todos marcados)
 - [x] Capacitações com presença e certificado (mesma dinâmica dos eventos; validação pública pelo mesmo link /certificado/<código>)
 
 **Equipe (ADM)**

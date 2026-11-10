@@ -18,24 +18,28 @@ const uniq = (rows: { email: string | null }[] | null) => new Set((rows ?? []).m
 export default async function ComunicadosPage({ searchParams }: PageProps<"/comunicados">) {
   const sp = await searchParams;
   const { supabase } = await requireAdmin();
-  const [{ data: pages }, { data: trainings }, { data: regs }, { data: leads }, { data: history }] = await Promise.all([
-    supabase.from("pages").select("id, title, kind").in("kind", ["capacitacao", "evento"]).order("sort_order"),
+  const [{ data: pages }, { data: allRegs }, { data: leads }, { data: history }] = await Promise.all([
+    supabase.from("pages").select("id, title, kind").in("kind", ["capacitacao", "evento", "cortejo"]).order("sort_order"),
     supabase.from("training_registrations").select("page_id, email"),
-    supabase.from("registrations").select("page_id, email"),
     supabase.from("form_submissions").select("email, newsletter"),
     supabase.from("email_campaigns").select("id, subject, audience_label, recipients, sent, failed, status, error, created_at").order("created_at", { ascending: false }).limit(30),
   ]);
 
   const byPage = (rows: { page_id: string; email: string | null }[] | null, id: string) => uniq((rows ?? []).filter((r) => r.page_id === id));
   const caps = (pages ?? []).filter((p) => p.kind === "capacitacao");
-  const evts = (pages ?? []).filter((p) => p.kind === "evento");
+  const evts = (pages ?? []).filter((p) => p.kind === "evento" || p.kind === "cortejo");
+  // Todas as inscrições ficam na mesma tabela; separa por tipo de página.
+  const capIds = new Set(caps.map((p) => p.id));
+  const evtIds = new Set(evts.map((p) => p.id));
+  const trainings = (allRegs ?? []).filter((r) => capIds.has(r.page_id));
+  const regs = (allRegs ?? []).filter((r) => evtIds.has(r.page_id));
   const options: AudienceOption[] = [
     { key: "capacitacoes", label: "Todas as capacitações", group: "Capacitações", count: uniq(trainings), audience: { type: "capacitacoes" } },
     ...caps.map((p) => ({ key: `capacitacao:${p.id}`, label: p.title, group: "Capacitações", count: byPage(trainings, p.id), audience: { type: "capacitacao" as const, page_id: p.id } })),
     { key: "leads-news", label: "Leads do formulário principal (aceitaram receber novidades)", group: "Formulário principal", count: uniq((leads ?? []).filter((l) => l.newsletter)), audience: { type: "leads", only_newsletter: true } },
     { key: "leads", label: "Leads do formulário principal (todos)", group: "Formulário principal", count: uniq(leads), audience: { type: "leads", only_newsletter: false } },
-    { key: "eventos", label: "Todos os eventos", group: "Eventos", count: uniq(regs), audience: { type: "eventos" } },
-    ...evts.map((p) => ({ key: `evento:${p.id}`, label: p.title, group: "Eventos", count: byPage(regs, p.id), audience: { type: "evento" as const, page_id: p.id } })),
+    { key: "eventos", label: "Todos os eventos e cortejos", group: "Eventos e cortejos", count: uniq(regs), audience: { type: "eventos" } },
+    ...evts.map((p) => ({ key: `evento:${p.id}`, label: p.title, group: "Eventos e cortejos", count: byPage(regs, p.id), audience: { type: "evento" as const, page_id: p.id } })),
   ];
   const initial = typeof sp.publico === "string" && options.some((o) => o.key === sp.publico) ? sp.publico : "capacitacoes";
 

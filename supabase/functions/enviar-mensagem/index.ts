@@ -4,8 +4,8 @@
 // Públicos (audience):
 //   { type: "capacitacao", page_id }   inscritos de uma capacitação
 //   { type: "capacitacoes" }           inscritos de todas as capacitações
-//   { type: "evento", page_id }        inscritos de um evento
-//   { type: "eventos" }                inscritos de todos os eventos
+//   { type: "evento", page_id }        inscritos de um evento ou cortejo
+//   { type: "eventos" }                inscritos de todos os eventos e cortejos
 //   { type: "leads", only_newsletter } leads do formulário principal (Inscritos)
 // Com { test: true } envia só para o e-mail de quem está enviando.
 //
@@ -76,14 +76,12 @@ Deno.serve(async (req) => {
 
     // Monta a lista de destinatários.
     let rows: { email: string | null; name: string | null }[] = [];
-    if (audience.type === "capacitacao" || audience.type === "capacitacoes") {
-      let q = admin.from("training_registrations").select("email, name");
-      if (audience.type === "capacitacao") q = q.eq("page_id", audience.page_id);
-      rows = (await q).data ?? [];
-    } else if (audience.type === "evento" || audience.type === "eventos") {
-      let q = admin.from("registrations").select("email, name:full_name");
-      if (audience.type === "evento") q = q.eq("page_id", audience.page_id);
-      rows = (await q).data ?? [];
+    // Inscrições (sem login) de eventos, cortejos e capacitações ficam todas em training_registrations.
+    if (audience.type === "capacitacao" || audience.type === "evento") {
+      rows = (await admin.from("training_registrations").select("email, name").eq("page_id", audience.page_id)).data ?? [];
+    } else if (audience.type === "capacitacoes" || audience.type === "eventos") {
+      const kinds = audience.type === "capacitacoes" ? ["capacitacao"] : ["evento", "cortejo"];
+      rows = (await admin.from("training_registrations").select("email, name, pages!inner(kind)").in("pages.kind", kinds)).data ?? [];
     } else if (audience.type === "leads") {
       let q = admin.from("form_submissions").select("email, name");
       if (audience.only_newsletter) q = q.eq("newsletter", true);

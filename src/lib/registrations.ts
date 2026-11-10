@@ -17,7 +17,7 @@ export interface AreaPageSummary {
 
 /** Páginas de uma área com a contagem de inscrições e presenças. */
 export async function areaPagesWithCounts(supabase: Db, kind: AreaKind): Promise<AreaPageSummary[]> {
-  const table = kind === "capacitacao" ? "training_registrations" : "registrations";
+  const table = "training_registrations"; // inscrições sem login de todas as áreas
   const [{ data: pages }, { data: regs }] = await Promise.all([
     supabase.from("pages").select("id, title, slug, status, starts_at, capacity, registration_enabled").eq("kind", kind).order("sort_order"),
     supabase.from(table).select("page_id, attended"),

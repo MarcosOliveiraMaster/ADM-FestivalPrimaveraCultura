@@ -2,9 +2,10 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin, requireStaff } from "@/lib/auth";
 
-export type RegKind = "evento" | "capacitacao";
-const TABLE = { evento: "registrations", capacitacao: "training_registrations" } as const;
-const PATH = { evento: "/participantes", capacitacao: "/capacitacoes" } as const;
+export type RegKind = "evento" | "cortejo" | "capacitacao";
+/** Todas as inscrições (eventos, cortejos e capacitações) ficam em training_registrations (sem login). */
+const TABLE = { evento: "training_registrations", cortejo: "training_registrations", capacitacao: "training_registrations" } as const;
+const PATH = { evento: "/participantes", cortejo: "/participantes", capacitacao: "/capacitacoes" } as const;
 
 export interface CertResult {
   ok: boolean;
@@ -56,22 +57,22 @@ export async function sendCertificates(kind: RegKind, ids?: string[], pageId?: s
   return { ok: true, sent, failed };
 }
 
-export async function deleteRegistration(table: "registrations" | "training_registrations", id: string) {
+export async function deleteRegistration(kind: RegKind, id: string): Promise<CertResult> {
   const { supabase } = await requireAdmin();
-  const { error } = await supabase.from(table).delete().eq("id", id);
-  if (error) return { ok: false as const, error: error.message };
-  revalidatePath(table === "registrations" ? "/participantes" : "/capacitacoes", "layout");
-  return { ok: true as const };
+  const { error } = await supabase.from(TABLE[kind]).delete().eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(PATH[kind], "layout");
+  return { ok: true };
 }
 
 /**
  * Reenvia os e-mails de confirmação que ainda não saíram (sem chave configurada,
  * falha de envio ou limite diário). Vale para eventos e capacitações.
  */
-export async function resendPendingConfirmations(kind: "evento" | "capacitacao", pageId: string) {
+export async function resendPendingConfirmations(kind: RegKind, pageId: string) {
   const { supabase } = await requireStaff();
-  const table = kind === "evento" ? "registrations" : "training_registrations";
-  const fn = kind === "evento" ? "confirmar-inscricao" : "confirmar-capacitacao";
+  const table = TABLE[kind];
+  const fn = "confirmar-capacitacao";
   const { data } = await supabase.from(table).select("id").eq("page_id", pageId).is("email_sent_at", null).limit(200);
   let sent = 0;
   let failed = 0;
@@ -80,6 +81,19 @@ export async function resendPendingConfirmations(kind: "evento" | "capacitacao",
     if (error) failed++;
     else sent++;
   }
-  revalidatePath(kind === "evento" ? "/participantes" : "/capacitacoes", "layout");
+  revalidatePath(PATH[kind], "layout");
   return { ok: true as const, sent, failed };
+}
+
+/** Salva o modelo de certificado de uma página ("padrao" = modelo do festival). null = volta ao padrão. */
+export async function saveCertificateTemplate(target: string, template: unknown | null) {
+  const { supabase } = await requireStaff();
+  const q =
+    target === "padrao"
+      ? supabase.from("site_settings").update({ certificate_template: template }).eq("id", 1)
+      : supabase.from("pages").update({ certificate_template: template }).eq("id", target);
+  const { error } = await q;
+  if (error) return { ok: false as const, error: error.message };
+  revalidatePath("/certificados", "layout");
+  return { ok: true as const };
 }

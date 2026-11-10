@@ -7,7 +7,6 @@ import { InterestForm } from "./InterestForm";
 import { BrandIcon } from "./BrandIcon";
 import { FramedImage } from "./FramedImage";
 import { Wave } from "./Wave";
-import { Registration } from "./Registration";
 import { TrainingForm } from "./TrainingForm";
 import { pagePath } from "../areas";
 
@@ -130,7 +129,8 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
       );
     }
     case "registration":
-      return <Registration props={block.props} pageId={ctx.pageId} preview={ctx.mode === "preview"} event={ctx.page} />;
+      // Inscrição sem login (mesmo formulário das capacitações): nome, e-mail, telefone e CPF.
+      return <TrainingForm props={{ title: block.props.title, intro: block.props.intro, buttonLabel: block.props.buttonLabel }} pageId={ctx.pageId} preview={ctx.mode === "preview"} />;
     case "training":
       return <TrainingForm props={block.props} pageId={ctx.pageId} preview={ctx.mode === "preview"} />;
     case "form":

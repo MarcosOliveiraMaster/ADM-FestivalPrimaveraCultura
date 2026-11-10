@@ -2,10 +2,10 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Send } from "lucide-react";
-import { resendPendingConfirmations } from "@/app/(painel)/participantes/actions";
+import { resendPendingConfirmations, type RegKind } from "@/app/(painel)/participantes/actions";
 
 /** Reenvia os e-mails de confirmação pendentes de uma página (evento ou capacitação). */
-export function ResendButton({ kind, pageId, pending }: { kind: "evento" | "capacitacao"; pageId: string; pending: number }) {
+export function ResendButton({ kind, pageId, pending }: { kind: RegKind; pageId: string; pending: number }) {
   const router = useRouter();
   const [busy, start] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);

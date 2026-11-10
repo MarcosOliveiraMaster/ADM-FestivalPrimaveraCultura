@@ -1,6 +1,6 @@
 // Envia por e-mail o link do certificado para participantes com presença confirmada.
-// Vale para eventos (registrations) e capacitações (training_registrations).
-// Só a equipe (perfil em profiles). Corpo: { kind: "evento" | "capacitacao", ids: string[] } (até 100).
+// Vale para eventos, cortejos e capacitações (todas as inscrições em training_registrations).
+// Só a equipe (perfil em profiles). Corpo: { ids: string[] } (até 100; "kind" é aceito e ignorado).
 // Inscrições sem presença são ignoradas. Reenviar é permitido (atualiza certificate_sent_at).
 //
 // Segredos: RESEND_API_KEY (BREVO_API_KEY opcional como reserva), EMAIL_FROM, SITE_URL
@@ -20,8 +20,7 @@ interface Row { id: string; name: string; email: string; attended: boolean; cert
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
-    const { kind, ids } = (await req.json()) as { kind: "evento" | "capacitacao"; ids: string[] };
-    if (kind !== "evento" && kind !== "capacitacao") return json({ error: "kind inválido" }, 400);
+    const { ids } = (await req.json()) as { ids: string[] };
     if (!Array.isArray(ids) || !ids.length) return json({ error: "Nenhuma inscrição informada." }, 400);
     if (ids.length > MAX) return json({ error: `Máximo de ${MAX} por envio.` }, 400);
 
@@ -34,11 +33,10 @@ Deno.serve(async (req) => {
     if (!staff) return json({ error: "Apenas a equipe pode enviar certificados." }, 403);
     if (!hasEmailProvider()) return json({ error: "Envio de e-mail não configurado (RESEND_API_KEY / BREVO_API_KEY)." }, 503);
 
-    const table = kind === "evento" ? "registrations" : "training_registrations";
-    const nameCol = kind === "evento" ? "full_name" : "name";
+    const table = "training_registrations";
     const { data, error } = await admin
       .from(table)
-      .select(`id, name:${nameCol}, email, attended, certificate_code, pages(title, starts_at, location, certificate_hours)`)
+      .select("id, name, email, attended, certificate_code, pages(title, starts_at, location, certificate_hours)")
       .in("id", ids);
     if (error) return json({ error: error.message }, 500);
 
@@ -65,8 +63,8 @@ Deno.serve(async (req) => {
           <p>Obrigado por participar de <strong>${esc(p.title)}</strong>${when ? `, em ${esc(when)}` : ""}${p.location ? ` (${esc(p.location)})` : ""}, no ${esc(festival)}.</p>
           ${p.certificate_hours ? `<p>Carga horária: <strong>${esc(Number(p.certificate_hours))}h</strong></p>` : ""}
           <p><a href="${esc(link)}" style="display:inline-block;background:#2f6f4f;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:bold">Ver e baixar o certificado</a></p>
-          <p style="font-size:14px">Na página do certificado, use “Imprimir / salvar PDF” para guardar uma cópia.<br>Código de validação: <strong>${esc(r.certificate_code)}</strong></p>
-          <p style="font-size:13px;color:#777">Qualquer pessoa pode conferir a autenticidade pelo link acima.</p>
+          <p style="font-size:14px">Na página do certificado, clique em “Baixar PDF” para guardar uma cópia.<br>Código de validação: <strong>${esc(r.certificate_code)}</strong></p>
+          <p style="font-size:13px;color:#777">Qualquer pessoa pode conferir a autenticidade pelo QR code do certificado ou pelo link acima.</p>
         </div>`;
       try {
         await sendEmail({ to: r.email, subject: `Seu certificado: ${p.title}`, html, fromName: festival });
