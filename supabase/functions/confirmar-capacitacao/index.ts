@@ -1,4 +1,4 @@
-// E-mail de confirmação da inscrição em capacitação (sem login).
+// E-mail de confirmação da inscrição sem login (eventos, cortejos e capacitações).
 // Chamado pelo site logo após a inscrição; só envia uma vez e só para inscrições
 // criadas nos últimos 15 minutos (não serve para disparar e-mails arbitrários).
 //
@@ -7,6 +7,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { hasEmailProvider, sendEmail } from "./email.ts";
 
 const TZ = "America/Sao_Paulo";
+const PATHS: Record<string, string> = { evento: "eventos", cortejo: "cortejos", capacitacao: "capacitacoes" };
+const LABELS: Record<string, string> = { evento: "evento", cortejo: "cortejo", capacitacao: "capacitação" };
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
@@ -20,7 +22,7 @@ Deno.serve(async (req) => {
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: r } = await admin
       .from("training_registrations")
-      .select("id, name, email, email_sent_at, created_at, pages(title, slug, starts_at, ends_at, location)")
+      .select("id, name, email, email_sent_at, created_at, pages(title, slug, kind, starts_at, ends_at, location)")
       .eq("id", registration_id)
       .maybeSingle();
     if (!r) return json({ error: "Inscrição não encontrada" }, 404);
@@ -36,7 +38,7 @@ Deno.serve(async (req) => {
     if (!hasEmailProvider()) return json({ error: "Envio de e-mail não configurado" }, 503);
     const { data: s } = await admin.from("site_settings").select("festival_name").eq("id", 1).maybeSingle();
     const festival = s?.festival_name ?? "Festival da Primavera";
-    const p = (r as unknown as { pages: { title: string; slug: string; starts_at: string | null; ends_at: string | null; location: string | null } }).pages;
+    const p = (r as unknown as { pages: { title: string; slug: string; kind: string; starts_at: string | null; ends_at: string | null; location: string | null } }).pages;
     const site = (Deno.env.get("SITE_URL") ?? "https://festivalprimaveracultural.com.br").replace(/\/$/, "");
     const when = p.starts_at
       ? new Intl.DateTimeFormat("pt-BR", { timeZone: TZ, weekday: "long", day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" }).format(new Date(p.starts_at))
@@ -49,11 +51,11 @@ Deno.serve(async (req) => {
       `<a href="${esc(href)}" style="display:inline-block;background:#2f6f4f;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:bold;margin:4px 6px 4px 0">${label}</a>`;
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#1f2a24;line-height:1.6">
-        <h1 style="color:#2f6f4f;font-size:24px">Inscrição na capacitação confirmada! ✿</h1>
+        <h1 style="color:#2f6f4f;font-size:24px">Inscrição confirmada! ✿</h1>
         <p>Olá, ${esc(r.name)}.</p>
         <p>Recebemos sua inscrição em <strong>${esc(p.title)}</strong> (${esc(festival)}).</p>
         <p><strong>Quando:</strong> ${esc(when)}<br><strong>Onde:</strong> ${esc(p.location ?? "Local a definir")}</p>
-        <p>${agenda ? btn(agenda, "Adicionar ao Google Agenda") : ""}${btn(`${site}/capacitacoes/${p.slug}`, "Ver capacitação")}</p>
+        <p>${agenda ? btn(agenda, "Adicionar ao Google Agenda") : ""}${btn(`${site}/${PATHS[p.kind] ?? "eventos"}/${p.slug}`, `Ver ${LABELS[p.kind] ?? "evento"}`)}</p>
         <p style="font-size:13px;color:#777">Se você não fez esta inscrição, ignore este e-mail.</p>
       </div>`;
     try {
