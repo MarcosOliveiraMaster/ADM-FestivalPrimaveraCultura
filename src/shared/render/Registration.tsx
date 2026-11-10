@@ -98,7 +98,7 @@ export function Registration({ props: p, pageId, preview, event }: {
     body = (
       <div className="flex flex-col gap-2">
         <a href={`/entrar?next=${encodeURIComponent(here)}`} data-track="inscricao:login" className="fp-btn fp-btn-primary fp-btn-lg self-start">{p.buttonLabel || "Quero me inscrever"}</a>
-        <span className="text-sm opacity-75">Entre com o Google ou com seu e-mail para se inscrever.</span>
+        <span className="text-sm opacity-75">Entre ou crie sua conta com seu e-mail para se inscrever.</span>
       </div>
     );
   } else {
