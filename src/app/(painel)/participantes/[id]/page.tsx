@@ -14,10 +14,10 @@ export default async function EventParticipants({ params }: PageProps<"/particip
   const { supabase, profile } = await requireStaff();
   const [{ data: page }, { data: rows }] = await Promise.all([
     supabase.from("pages").select("id, title, starts_at, ends_at, capacity, certificate_hours").eq("id", id).eq("kind", "evento").maybeSingle(),
-    supabase.from("registrations").select("id, full_name, email, attended, certificate_code, created_at, email_sent_at").eq("page_id", id).order("created_at"),
+    supabase.from("registrations").select("id, name:full_name, email, attended, certificate_code, certificate_sent_at, created_at, email_sent_at").eq("page_id", id).order("created_at"),
   ]);
   if (!page) notFound();
-  const list = (rows ?? []) as AttendanceRow[];
+  const list = (rows ?? []) as unknown as AttendanceRow[];
   const present = list.filter((r) => r.attended).length;
   return (
     <>
@@ -33,7 +33,7 @@ export default async function EventParticipants({ params }: PageProps<"/particip
         }
       />
       <Container>
-        <AttendanceTable rows={list} isAdmin={profile.role === "admin"} siteUrl={SITE_URL} />
+        <AttendanceTable rows={list} kind="evento" pageId={page.id} isAdmin={profile.role === "admin"} siteUrl={SITE_URL} />
       </Container>
     </>
   );

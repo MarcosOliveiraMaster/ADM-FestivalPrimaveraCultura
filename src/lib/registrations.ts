@@ -15,12 +15,12 @@ export interface AreaPageSummary {
   attended: number;
 }
 
-/** Páginas de uma área com a contagem de inscrições (e presenças, nos eventos). */
+/** Páginas de uma área com a contagem de inscrições e presenças. */
 export async function areaPagesWithCounts(supabase: Db, kind: AreaKind): Promise<AreaPageSummary[]> {
   const table = kind === "capacitacao" ? "training_registrations" : "registrations";
   const [{ data: pages }, { data: regs }] = await Promise.all([
     supabase.from("pages").select("id, title, slug, status, starts_at, capacity, registration_enabled").eq("kind", kind).order("sort_order"),
-    supabase.from(table).select(kind === "capacitacao" ? "page_id" : "page_id, attended"),
+    supabase.from(table).select("page_id, attended"),
   ]);
   const count: Record<string, { total: number; attended: number }> = {};
   for (const r of (regs ?? []) as unknown as { page_id: string; attended?: boolean }[]) {

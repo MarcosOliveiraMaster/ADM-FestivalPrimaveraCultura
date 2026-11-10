@@ -237,6 +237,8 @@ Regras de acesso (RLS): visitante anônimo **lê** páginas publicadas e **inser
 - [x] E-mail de confirmação ao receber inscrição (Edge Function `confirmar-inscricao`) — falta a chave do Resend
 - [x] Google Agenda após inscrição (botão, link no e-mail e arquivo .ics)
 - [x] Área de certificados (presença marcada em Participantes → certificado com código de validação)
+- [x] Certificado por e-mail (Edge Function `enviar-certificado`): ao marcar presença (opção ligada por padrão), por participante (enviar/reenviar) ou em lote ("Enviar certificados pendentes"); status "enviado" na tabela e no CSV
+- [x] Capacitações com presença e certificado (mesma dinâmica dos eventos; validação pública pelo mesmo link /certificado/<código>)
 
 **Equipe (ADM)**
 - [x] Domínios: login.festivalprimaveracultural.com.br (entrada) → adm.festivalprimaveracultural.com.br (painel)
