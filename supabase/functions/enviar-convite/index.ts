@@ -1,4 +1,4 @@
-// Gera o link único de convite da equipe (válido por 1 hora) e envia por e-mail.
+// Gera o link único de convite da equipe (válido por 7 dias) e envia por e-mail.
 // Só administradores podem chamar. Devolve o link para ser copiado no painel
 // também (útil se o e-mail ainda não estiver configurado).
 //
@@ -9,6 +9,9 @@ import { hasEmailProvider, sendEmail } from "./email.ts";
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+
+/** Validade do link do convite. */
+const INVITE_DAYS = 7;
 
 async function sha256(text: string) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
@@ -34,7 +37,7 @@ Deno.serve(async (req) => {
 
     const bytes = crypto.getRandomValues(new Uint8Array(32));
     const token = btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-    const expires = new Date(Date.now() + 60 * 60 * 1000);
+    const expires = new Date(Date.now() + INVITE_DAYS * 24 * 60 * 60 * 1000);
     const { error } = await admin.from("staff_invites").update({ token_hash: await sha256(token), token_expires_at: expires.toISOString() }).eq("email", e);
     if (error) return json({ error: "Não foi possível gerar o convite." }, 500);
 
@@ -51,7 +54,7 @@ Deno.serve(async (req) => {
           <h1 style="color:#2f6f4f;font-size:22px">Você foi convidado(a) para a equipe do ${esc(festival)}</h1>
           <p>${esc(prof.full_name || "A coordenação")} convidou você para acessar o painel administrativo como <strong>${papel}</strong>.</p>
           <p><a href="${esc(link)}" style="display:inline-block;background:#2f6f4f;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:bold">Criar minha conta</a></p>
-          <p style="font-size:14px;color:#555">O link é pessoal e vale por <strong>1 hora</strong>. Se expirar, peça um novo convite.</p>
+          <p style="font-size:14px;color:#555">O link é pessoal e vale por <strong>${INVITE_DAYS} dias</strong>. Se expirar, peça um novo convite.</p>
         </div>`;
       try {
         await sendEmail({ to: e, subject: `Convite: painel do ${festival}`, html, fromName: festival });
