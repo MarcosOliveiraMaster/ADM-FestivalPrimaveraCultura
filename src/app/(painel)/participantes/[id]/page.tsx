@@ -1,8 +1,6 @@
-import { RegistrationsDetail } from "@/components/RegistrationsDetail";
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "Participantes" };
-
-export default async function EventParticipants({ params }: PageProps<"/participantes/[id]">) {
-  const { id } = await params;
-  return <RegistrationsDetail id={id} kinds={["evento", "cortejo"]} back={{ href: "/participantes", label: "Eventos e cortejos" }} />;
+/** Endereço antigo: tudo fica em Inscrições. */
+export default async function Antigo({ params }: PageProps<"/participantes/[id]">) {
+  redirect(`/inscricoes/${(await params).id}`);
 }

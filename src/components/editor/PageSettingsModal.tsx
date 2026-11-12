@@ -81,17 +81,11 @@ export function PageSettingsModal({ open, onClose, page, onSaved }: { open: bool
               <Text label="Local" value={m.location} onChange={(v) => set({ location: v })} placeholder="A definir" />
             </>
           )}
-          {(m.kind === "evento" || m.kind === "capacitacao") && (
+          {(m.kind === "evento" || m.kind === "cortejo" || m.kind === "capacitacao") && (
             <>
-              <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{m.kind === "capacitacao" ? "Inscrições" : "Inscrições e certificado"}</div>
-              <Toggle
-                label="Inscrições abertas"
-                checked={m.registration_enabled}
-                onChange={(v) => set({ registration_enabled: v })}
-                help={m.kind === "capacitacao" ? "Adicione o bloco “Inscrição em capacitação” (nome, e-mail e telefone, sem login)." : "Adicione o bloco “Inscrição no evento” na página para mostrar o botão."}
-              />
-              <NumberField label="Vagas (0 = sem limite)" value={m.capacity ?? 0} onChange={(v) => set({ capacity: v > 0 ? v : null })} min={0} />
-              {(m.kind === "evento" || m.kind === "capacitacao") && <NumberField label="Carga horária do certificado (horas, 0 = não informar)" value={m.certificate_hours ?? 0} onChange={(v) => set({ certificate_hours: v > 0 ? v : null })} min={0} />}
+              <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Certificado</div>
+              <NumberField label="Carga horária do certificado (horas, 0 = não informar)" value={m.certificate_hours ?? 0} onChange={(v) => set({ certificate_hours: v > 0 ? v : null })} min={0} />
+              <span className="adm-help">As inscrições ficam sempre abertas, sem limite de vagas. Adicione o bloco “Formulário de inscrição” na página; as respostas aparecem em Inscrições.</span>
             </>
           )}
           <div className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Compartilhamento (SEO)</div>

@@ -1,4 +1,4 @@
-import type { Block, RenderContext } from "../types";
+import type { TrainingFormProps, Block, RenderContext } from "../types";
 import { autoplayEmbedUrl, formatDate, formatRange, googleCalendarUrl, videoEmbedUrl } from "../format";
 import { cleanHtml } from "./sanitize";
 import { Countdown } from "./Countdown";
@@ -130,9 +130,9 @@ export function BlockView({ block, ctx }: { block: Block; ctx: RenderContext }) 
     }
     case "registration":
       // Inscrição sem login (mesmo formulário das capacitações): nome, e-mail, telefone e CPF.
-      return <TrainingForm props={{ title: block.props.title, intro: block.props.intro, buttonLabel: block.props.buttonLabel }} pageId={ctx.pageId} preview={ctx.mode === "preview"} />;
+      return <TrainingForm props={block.props as TrainingFormProps} pageId={ctx.pageId} formId={block.id} preview={ctx.mode === "preview"} />;
     case "training":
-      return <TrainingForm props={block.props} pageId={ctx.pageId} preview={ctx.mode === "preview"} />;
+      return <TrainingForm props={block.props} pageId={ctx.pageId} formId={block.id} preview={ctx.mode === "preview"} />;
     case "form":
       return <InterestForm props={block.props} pageId={ctx.pageId} preview={ctx.mode === "preview"} events={ctx.events} iconUrl={ctx.settings.brand.icon_url} />;
     case "schedule": {

@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { Award, Download, MessageCircle, Send, Trash2 } from "lucide-react";
 import { formatDate, formatDateTime } from "@/shared/format";
 import { googleFontsHref } from "@/shared/theme";
-import type { Theme } from "@/shared/types";
+import type { FormCustomField, Theme } from "@/shared/types";
+import { answerText, formatAddress, type Address } from "@/shared/forms";
 import { certFileName, certValues, maskCpf, templateFonts, type CertEvent, type CertTemplate } from "@/shared/certificate";
 import { CertificateView } from "@/shared/render/CertificateView";
 import { certificatePdf, downloadBlob, qrDataUrl } from "@/shared/certificatePdf";
@@ -20,11 +21,21 @@ export interface AttendanceRow {
   email: string;
   phone?: string | null;
   cpf?: string | null;
+  /** Formulário (bloco) da página por onde a pessoa se inscreveu. */
+  form_id?: string | null;
+  address?: Address | null;
+  answers?: Record<string, unknown> | null;
   attended: boolean;
   certificate_code: string;
   certificate_sent_at: string | null;
   email_sent_at: string | null;
   created_at: string;
+}
+
+export interface FormInfo {
+  id: string;
+  title: string;
+  custom: FormCustomField[];
 }
 
 export interface CertContext {
@@ -39,7 +50,12 @@ const wa = (phone: string) => `https://wa.me/${(phone.replace(/\D/g, "").length 
 const byName = (a: AttendanceRow, b: AttendanceRow) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" });
 
 /** Lista de inscritos com presença, certificado (e-mail com link e download em ZIP) e exclusão. */
-export function AttendanceTable({ rows, kind, isAdmin, siteUrl, cert }: { rows: AttendanceRow[]; kind: RegKind; pageId: string; isAdmin: boolean; siteUrl: string; cert: CertContext }) {
+export function AttendanceTable({ rows: allRows, kind, isAdmin, siteUrl, cert, forms = [] }: { rows: AttendanceRow[]; kind: RegKind; pageId: string; isAdmin: boolean; siteUrl: string; cert: CertContext; forms?: FormInfo[] }) {
+  const [formFilter, setFormFilter] = useState<string>("todos");
+  const rows = useMemo(() => (formFilter === "todos" ? allRows : allRows.filter((r) => (r.form_id ?? "") === formFilter)), [allRows, formFilter]);
+  // Rótulos das perguntas extras (de todos os formulários da página).
+  const labels = useMemo(() => Object.fromEntries(forms.flatMap((f) => f.custom.map((c) => [c.key, c.label]))), [forms]);
+  const otherForms = useMemo(() => [...new Set(allRows.map((r) => r.form_id ?? ""))].filter((id) => !forms.some((f) => f.id === id)), [allRows, forms]);
   const router = useRouter();
   const [busy, start] = useTransition();
   const [q, setQ] = useState("");
@@ -82,6 +98,16 @@ export function AttendanceTable({ rows, kind, isAdmin, siteUrl, cert }: { rows: 
   return (
     <div className="flex flex-col gap-3">
       {fonts && <link rel="stylesheet" href={fonts} crossOrigin="anonymous" />}
+      {forms.length + otherForms.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-zinc-500">Formulário:</span>
+          {[{ id: "todos", title: "Todos" }, ...forms, ...otherForms.map((id) => ({ id, title: id ? "Formulário removido da página" : "Sem formulário (antigas)" }))].map((f) => (
+            <button key={f.id} type="button" onClick={() => setFormFilter(f.id)} className={`rounded-full border px-3 py-1 ${formFilter === f.id ? "border-brand-500 bg-brand-50 text-brand-700" : "border-zinc-200 hover:border-zinc-400"}`}>
+              {f.title} ({f.id === "todos" ? allRows.length : allRows.filter((r) => (r.form_id ?? "") === f.id).length})
+            </button>
+          ))}
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por nome, e-mail, telefone ou CPF" className="adm-input max-w-xs" />
         <button
@@ -130,6 +156,7 @@ export function AttendanceTable({ rows, kind, isAdmin, siteUrl, cert }: { rows: 
                     )}
                     {r.cpf && <span className="text-zinc-500" title="CPF parcialmente oculto">CPF {maskCpf(r.cpf)}</span>}
                   </div>
+                  <Answers row={r} labels={labels} />
                 </td>
                 <td className="hidden text-xs text-zinc-500 md:table-cell">{formatDateTime(r.created_at)}</td>
                 <td className="hidden text-xs sm:table-cell">{r.email_sent_at ? <span className="text-brand-700">e-mail enviado</span> : <span className="text-amber-700">não enviado</span>}</td>
@@ -215,7 +242,7 @@ function CertDialog({ mode, people, onClose, onEmail, cert, siteUrl }: { mode: "
       for (let i = 0; i < chosen.length; i++) {
         const p = chosen[i];
         const qr = cert.template.qr.enabled ? await qrDataUrl(`${siteUrl}/certificado/${p.certificate_code}`) : null;
-        const values = certValues({ name: p.name, cpf: p.cpf, email: p.email, phone: p.phone, code: p.certificate_code }, cert.event, cert.festival);
+        const values = certValues({ name: p.name, cpf: p.cpf, email: p.email, phone: p.phone, code: p.certificate_code, address: p.address, answers: p.answers }, cert.event, cert.festival);
         flushSync(() => root.render(<CertificateView template={cert.template} values={values} qr={qr} theme={cert.theme} />));
         const node = host.firstElementChild as HTMLElement;
         const pdf = await certificatePdf(node, cert.template.orientation);
@@ -293,5 +320,31 @@ function CertDialog({ mode, people, onClose, onEmail, cert, siteUrl }: { mode: "
         {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       </div>
     </Modal>
+  );
+}
+
+/** Endereço e respostas dos campos extras, em lista compacta. */
+function Answers({ row, labels }: { row: AttendanceRow; labels: Record<string, string> }) {
+  const addr = formatAddress(row.address);
+  const entries = Object.entries(row.answers ?? {}).filter(([, v]) => answerText(v));
+  if (!addr && !entries.length) return null;
+  return (
+    <details className="mt-1 text-xs text-zinc-600">
+      <summary className="cursor-pointer text-brand-700">Respostas ({entries.length + (addr ? 1 : 0)})</summary>
+      <dl className="mt-1 grid gap-x-3 gap-y-0.5 sm:grid-cols-[auto_1fr]">
+        {addr && (
+          <>
+            <dt className="font-medium">Endereço</dt>
+            <dd>{addr}</dd>
+          </>
+        )}
+        {entries.map(([k, v]) => (
+          <div key={k} className="contents">
+            <dt className="font-medium">{labels[k] ?? k}</dt>
+            <dd>{answerText(v)}</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
   );
 }

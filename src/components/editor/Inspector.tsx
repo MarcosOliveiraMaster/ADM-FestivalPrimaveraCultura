@@ -2,12 +2,13 @@
 import { useState } from "react";
 import { AlignCenter, AlignLeft, AlignRight, ArrowDown, ArrowUp, Copy, FileText, Images, Trash2 } from "lucide-react";
 import type { MediaItem } from "@/lib/media";
-import type { Block, BlockMap, BlockType, Section, SectionStyle } from "@/shared/types";
+import type { Block, BlockMap, BlockType, Section, SectionStyle, TrainingFormProps } from "@/shared/types";
 import { LAYOUTS, blockLabel } from "@/shared/blocks";
 import { videoEmbedUrl } from "@/shared/format";
 import { FrameButton, MediaField, MediaPickerModal } from "../MediaLibrary";
 import { FramedImage } from "@/shared/render/FramedImage";
 import { RichTextEditor } from "./RichTextEditor";
+import { FormBuilder } from "./FormBuilder";
 import { purgeMedia } from "@/app/(painel)/midia/actions";
 import { formatBytes } from "@/lib/media";
 import { ColorInput, DateTime, ListEditor, NumberField, Segmented, Select, Text, Toggle } from "./fields";
@@ -424,29 +425,9 @@ function BlockFields({ block, set, pageId }: { block: Block; set: (patch: Record
         </>
       );
     }
-    case "registration": {
-      const p = block.props;
-      return (
-        <>
-          <Text label="Título" value={p.title} onChange={(v) => set({ title: v })} />
-          <Text label="Texto" multiline value={p.intro} onChange={(v) => set({ intro: v })} />
-          <Text label="Texto do botão" value={p.buttonLabel} onChange={(v) => set({ buttonLabel: v })} />
-          <span className="adm-help">Abra/feche as inscrições, defina vagas e carga horária em Configurações da página. O participante faz login (Google ou e-mail), recebe confirmação por e-mail com link para o Google Agenda e, após a presença marcada em Participantes, emite o certificado.</span>
-        </>
-      );
-    }
-    case "training": {
-      const p = block.props;
-      return (
-        <>
-          <Text label="Título" value={p.title} onChange={(v) => set({ title: v })} />
-          <Text label="Texto" multiline value={p.intro} onChange={(v) => set({ intro: v })} />
-          <Text label="Texto do botão" value={p.buttonLabel} onChange={(v) => set({ buttonLabel: v })} />
-          <Text label="Mensagem após enviar" multiline value={p.successMessage} onChange={(v) => set({ successMessage: v })} />
-          <span className="adm-help">Pede nome, e-mail e telefone (sem login) e envia confirmação por e-mail. Use em páginas do tipo Capacitação; abra as inscrições e defina vagas em Configurações da página. As inscrições aparecem em Capacitações no menu do painel.</span>
-        </>
-      );
-    }
+    case "registration":
+    case "training":
+      return <FormBuilder props={block.props as TrainingFormProps} onChange={(patch) => set(patch as never)} />;
     case "news": {
       const p = block.props;
       return (

@@ -85,8 +85,32 @@ export interface FaqProps {
 export interface NewsItem { title: string; subtitle?: string; image?: string; url: string; source?: string; date?: string }
 /** Inscrição no evento da página (login + confirmação por e-mail + Google Agenda). */
 export interface RegistrationProps { title?: string; intro?: string; buttonLabel?: string }
-/** Inscrição em capacitação sem login: nome, e-mail e telefone, com confirmação por e-mail. */
-export interface TrainingFormProps { title?: string; intro?: string; buttonLabel?: string; successMessage?: string }
+/** Campo extra do formulário de inscrição, criado no editor. */
+export type FormFieldType = "text" | "textarea" | "number" | "date" | "select" | "checkbox";
+export interface FormCustomField {
+  /** Identificador estável (vira variável do certificado: {{chave}}). */
+  key: string;
+  label: string;
+  type: FormFieldType;
+  /** Opções de "select" (escolha única) e "checkbox" (múltipla escolha). */
+  options?: string[];
+  required?: boolean;
+  /** A chave não muda mais (já pode haver respostas e certificados usando-a). */
+  keyLocked?: boolean;
+}
+export interface FormStdField { on: boolean; required?: boolean }
+/**
+ * Formulário de inscrição (sem login) em eventos, cortejos e capacitações.
+ * Nome e e-mail são sempre pedidos; CPF, telefone e endereço são opcionais; campos extras à vontade.
+ */
+export interface TrainingFormProps {
+  title?: string;
+  intro?: string;
+  buttonLabel?: string;
+  successMessage?: string;
+  fields?: { cpf?: FormStdField; phone?: FormStdField; address?: FormStdField };
+  custom?: FormCustomField[];
+}
 /** Notícias: só título, subtítulo e imagem; o clique leva ao link externo da matéria. */
 export interface NewsProps { items: NewsItem[]; columns: 2 | 3; featured?: boolean }
 export interface LogosProps { title?: string; items: { url: string; name?: string; link?: string }[]; grayscale?: boolean }

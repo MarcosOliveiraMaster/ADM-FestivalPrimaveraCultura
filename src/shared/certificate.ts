@@ -1,3 +1,5 @@
+import { answerText, formatAddress, type Address } from "./forms";
+
 /**
  * Modelo de certificado editável (editor visual do ADM) e preenchimento das variáveis.
  * Posições em % da página; tamanho da fonte em milésimos da largura (40 = 4% da largura),
@@ -42,6 +44,9 @@ export const CERT_VARIABLES: { key: string; label: string; sample: string }[] = 
   { key: "local", label: "Local", sample: "Centro Cultural, Maceió" },
   { key: "carga_horaria", label: "Carga horária (horas)", sample: "8" },
   { key: "codigo", label: "Código de validação", sample: "A1B2C3D4E5" },
+  { key: "endereco", label: "Endereço completo", sample: "Rua das Flores, 120 - Centro · Maceió/AL" },
+  { key: "cidade", label: "Cidade", sample: "Maceió" },
+  { key: "uf", label: "UF", sample: "AL" },
   { key: "festival", label: "Nome do festival", sample: "Festival Primavera Cultural" },
 ];
 
@@ -94,6 +99,10 @@ export interface CertPerson {
   email?: string | null;
   phone?: string | null;
   code: string;
+  /** Endereço informado na inscrição. */
+  address?: Address | null;
+  /** Respostas dos campos extras do formulário ({{chave}} no modelo). */
+  answers?: Record<string, unknown> | null;
 }
 export interface CertEvent {
   title: string;
@@ -141,7 +150,13 @@ function eventDate(start?: string | null, end?: string | null) {
 
 export function certValues(person: CertPerson, event: CertEvent, festival: string): Record<string, string> {
   const hours = event.hours != null && Number(event.hours) > 0 ? String(Number(event.hours)).replace(".", ",") : "";
+  const extras = Object.fromEntries(Object.entries(person.answers ?? {}).map(([k, v]) => [k.toLowerCase(), answerText(v)]));
   return {
+    ...extras,
+    endereco: formatAddress(person.address),
+    cidade: person.address?.cidade ?? "",
+    uf: person.address?.uf ?? "",
+    cep: person.address?.cep ?? "",
     nome: person.name?.trim() ?? "",
     cpf: formatCpf(person.cpf),
     email: person.email ?? "",

@@ -1,8 +1,6 @@
-import { RegistrationsDetail } from "@/components/RegistrationsDetail";
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "Capacitações" };
-
-export default async function TrainingRegistrations({ params }: PageProps<"/capacitacoes/[id]">) {
-  const { id } = await params;
-  return <RegistrationsDetail id={id} kinds={["capacitacao"]} back={{ href: "/capacitacoes", label: "Capacitações" }} />;
+/** Endereço antigo: tudo fica em Inscrições. */
+export default async function Antigo({ params }: PageProps<"/capacitacoes/[id]">) {
+  redirect(`/inscricoes/${(await params).id}`);
 }

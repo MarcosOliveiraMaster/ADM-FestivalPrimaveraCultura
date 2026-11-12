@@ -38,6 +38,7 @@ export function CertificateEditor({
   festival,
   event,
   siteUrl,
+  extraVars = [],
 }: {
   target: string;
   title: string;
@@ -50,6 +51,8 @@ export function CertificateEditor({
   festival: string;
   event: CertEvent;
   siteUrl: string;
+  /** Perguntas extras dos formulários desta página (viram {{chave}}). */
+  extraVars?: { key: string; label: string }[];
 }) {
   const router = useRouter();
   const primary = resolveTheme(theme).primary;
@@ -107,10 +110,12 @@ export function CertificateEditor({
   const onPointerUp = () => (drag.current = null);
 
   const block = t.blocks.find((b) => b.id === sel) ?? null;
+  const extraSample = Object.fromEntries(extraVars.map((v) => [v.key, `[${v.label}]`]));
+  const allVars = [...CERT_VARIABLES, ...extraVars.filter((v) => !CERT_VARIABLES.some((c) => c.key === v.key))];
   const values =
     preview === "exemplo"
-      ? { ...SAMPLE_VALUES, festival, evento: event.title === "Nome do evento" ? SAMPLE_VALUES.evento : event.title, ...pick(certValues({ name: "", code: "" }, event, festival), ["data", "local", "carga_horaria"]) }
-      : Object.fromEntries(CERT_VARIABLES.map((v) => [v.key, `{{${v.key}}}`]));
+      ? { ...extraSample, ...SAMPLE_VALUES, festival, evento: event.title === "Nome do evento" ? SAMPLE_VALUES.evento : event.title, ...pick(certValues({ name: "", code: "" }, event, festival), ["data", "local", "carga_horaria"]) }
+      : Object.fromEntries(allVars.map((v) => [v.key, `{{${v.key}}}`]));
 
   function insertVar(key: string) {
     if (!block) return;
@@ -251,7 +256,7 @@ export function CertificateEditor({
               <div>
                 <div className="mb-1 text-xs text-zinc-500">Inserir variável (puxada automaticamente do cadastro):</div>
                 <div className="flex flex-wrap gap-1">
-                  {CERT_VARIABLES.map((v) => (
+                  {allVars.map((v) => (
                     <button key={v.key} type="button" title={v.label} onClick={() => insertVar(v.key)} className="rounded-full bg-zinc-100 px-2 py-0.5 font-mono text-[11px] text-zinc-700 hover:bg-brand-50 hover:text-brand-700">
                       {`{{${v.key}}}`}
                     </button>

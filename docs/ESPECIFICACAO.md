@@ -241,6 +241,10 @@ Regras de acesso (RLS): visitante anônimo **lê** páginas publicadas e **inser
 - [x] Inscrição sem login (nome, e-mail, telefone, CPF opcional) em eventos, cortejos e capacitações; botão "Entrar" do site oculto (área do participante em espera)
 - [x] Modelo de certificado editável (editor visual: fundo, textos arrastáveis com fonte/tamanho/cor/estilo, variáveis {{nome}}, {{cpf}}…, trechos opcionais [[ ]], QR code de validação, A4 paisagem/retrato), padrão do festival + por página
 - [x] "Enviar certificados por e-mail" (link) e "Download certificados" (ZIP com um PDF por pessoa), com popup de confirmação (presentes, ordem alfabética, todos marcados)
+- [x] Formulário de inscrição configurável no editor: nome e e-mail sempre; CPF, telefone e endereço (CEP preenche e continua editável) liga/desliga e obrigatório; campos extras (texto, texto longo, número, data, escolha única, múltipla escolha) que viram variáveis do certificado
+- [x] Inscrições sempre abertas e sem limite de vagas; mesmo e-mail na mesma página atualiza a inscrição; em páginas diferentes, inscrições separadas
+- [x] Menu "Inscrições" (capacitações, eventos e cortejos) com respostas por formulário, filtro por formulário e CSV com uma coluna por pergunta
+- [x] Oficina com o Palhaço Biribinha convertida em capacitação (link antigo /eventos/… redireciona)
 - [x] Capacitações com presença e certificado (mesma dinâmica dos eventos; validação pública pelo mesmo link /certificado/<código>)
 
 **Equipe (ADM)**

@@ -41,9 +41,8 @@ export const BLOCK_LIBRARY: { type: BlockType; label: string; description: strin
   { type: "video", label: "Vídeo", description: "YouTube, Vimeo ou Instagram", group: "Mídia" },
   { type: "logos", label: "Logos / patrocinadores", description: "Grade de logos com links", group: "Mídia" },
   { type: "eventinfo", label: "Data, hora e local", description: "Agenda, endereço e mapa", group: "Evento" },
-  { type: "registration", label: "Inscrição no evento", description: "Nome, e-mail, telefone e CPF, sem login, com confirmação por e-mail", group: "Evento" },
-  { type: "training", label: "Formulário de inscrição", description: "Nome, e-mail, telefone e CPF, sem login, com confirmação por e-mail", group: "Evento" },
-  { type: "form", label: "Formulário de interesse", description: "Coleta interessados", group: "Evento" },
+  { type: "training", label: "Formulário de inscrição", description: "Campos à sua escolha (nome, e-mail, CPF, telefone, endereço e extras). As respostas vão para Inscrições", group: "Evento" },
+  { type: "form", label: "Formulário de interesse (página inicial)", description: "Contatos gerais do festival — as respostas vão para Inscritos", group: "Evento" },
   { type: "schedule", label: "Programação automática", description: "Lista os eventos publicados", group: "Evento" },
   { type: "countdown", label: "Contagem regressiva", description: "Até uma data", group: "Evento" },
   { type: "spacer", label: "Espaçador", description: "Espaço em branco", group: "Estrutura" },
@@ -82,7 +81,14 @@ export const BLOCK_DEFAULTS: { [K in BlockType]: () => BlockMap[K] } = {
     single: false,
   }),
   registration: () => ({ title: "Inscreva-se", intro: "Preencha seus dados e garanta sua vaga. Você recebe a confirmação por e-mail.", buttonLabel: "Quero me inscrever" }),
-  training: () => ({ title: "Formulário de inscrição", intro: "Preencha seus dados. Você recebe a confirmação por e-mail.", buttonLabel: "Fazer inscrição", successMessage: "Inscrição recebida! Enviamos a confirmação para o seu e-mail." }),
+  training: () => ({
+    title: "Formulário de inscrição",
+    intro: "Preencha seus dados. Você recebe a confirmação por e-mail.",
+    buttonLabel: "Fazer inscrição",
+    successMessage: "Inscrição recebida! Enviamos a confirmação para o seu e-mail.",
+    fields: { cpf: { on: true, required: false }, phone: { on: true, required: false }, address: { on: false, required: false } },
+    custom: [],
+  }),
   news: () => ({ items: [{ title: "Título da notícia", subtitle: "", image: "", url: "https://", source: "" }], columns: 3, featured: true }),
   logos: () => ({ title: "Apoio", items: [], grayscale: false }),
   spacer: () => ({ size: "md" }),
@@ -115,7 +121,8 @@ export function relayout(section: Section, layout: SectionLayout): Section {
 export function withTrainingForm(content: PageContent): PageContent {
   const has = content.sections.some((s) => s.columns.some((c) => c.some((bl) => bl.type === "training")));
   if (has) return content;
-  const section = { ...newSection("1", [[newBlock("training")]]), style: { ...DEFAULT_SECTION_STYLE, padding: "lg" as const, anchor: "inscricao" }, name: "Inscrição" };
+  // Id fixo: a inscrição precisa saber de qual formulário veio (e o servidor encontra os campos).
+  const section = { ...newSection("1", [[{ ...newBlock("training"), id: "auto-inscricao" }]]), style: { ...DEFAULT_SECTION_STYLE, padding: "lg" as const, anchor: "inscricao" }, name: "Inscrição" };
   return { ...content, sections: [...content.sections, section] };
 }
 

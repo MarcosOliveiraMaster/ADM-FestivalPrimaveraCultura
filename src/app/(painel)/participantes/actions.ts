@@ -5,7 +5,7 @@ import { requireAdmin, requireStaff } from "@/lib/auth";
 export type RegKind = "evento" | "cortejo" | "capacitacao";
 /** Todas as inscrições (eventos, cortejos e capacitações) ficam em training_registrations (sem login). */
 const TABLE = { evento: "training_registrations", cortejo: "training_registrations", capacitacao: "training_registrations" } as const;
-const PATH = { evento: "/participantes", cortejo: "/participantes", capacitacao: "/capacitacoes" } as const;
+const PATH = { evento: "/inscricoes", cortejo: "/inscricoes", capacitacao: "/inscricoes" } as const;
 
 export interface CertResult {
   ok: boolean;

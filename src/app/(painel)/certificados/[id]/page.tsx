@@ -4,6 +4,8 @@ import { SITE_URL } from "@/lib/supabase/env";
 import { mergeSettings } from "@/shared/theme";
 import { AREAS, isArea } from "@/shared/areas";
 import { CertificateEditor } from "./CertificateEditor";
+import { pageForms } from "@/shared/forms";
+import type { PageContent } from "@/shared/types";
 
 export const metadata = { title: "Modelo de certificado" };
 
@@ -21,7 +23,7 @@ export default async function CertificadoModelo({ params }: PageProps<"/certific
         target="padrao"
         title="Modelo padrão do festival"
         subtitle="Usado por todos os eventos, cortejos e capacitações que não têm modelo próprio."
-        back={{ href: "/participantes", label: "Participantes" }}
+        back={{ href: "/inscricoes", label: "Inscrições" }}
         initial={festivalTemplate}
         festivalTemplate={null}
         hasOwn={!!festivalTemplate}
@@ -33,9 +35,9 @@ export default async function CertificadoModelo({ params }: PageProps<"/certific
     );
   }
 
-  const { data: page } = await supabase.from("pages").select("id, title, kind, starts_at, ends_at, location, certificate_hours, certificate_template").eq("id", id).maybeSingle();
+  const { data: page } = await supabase.from("pages").select("id, title, kind, content, starts_at, ends_at, location, certificate_hours, certificate_template").eq("id", id).maybeSingle();
   if (!page || !isArea(page.kind)) notFound();
-  const back = page.kind === "capacitacao" ? { href: `/capacitacoes/${page.id}`, label: "Inscritos" } : { href: `/participantes/${page.id}`, label: "Inscritos" };
+  const back = { href: `/inscricoes/${page.id}`, label: "Inscritos" };
   return (
     <CertificateEditor
       target={page.id}
@@ -49,6 +51,7 @@ export default async function CertificadoModelo({ params }: PageProps<"/certific
       festival={s.festival_name}
       event={{ title: page.title, starts_at: page.starts_at, ends_at: page.ends_at, location: page.location, hours: page.certificate_hours }}
       siteUrl={SITE_URL}
+      extraVars={pageForms(page.content as PageContent).flatMap((f) => (f.props.custom ?? []).map((c) => ({ key: c.key, label: c.label })))}
     />
   );
 }
