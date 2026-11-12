@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Primeiro acesso" };
 
-/** Só funciona com o link do convite (token válido por 1 hora). */
+/** Só funciona com o link do convite (token válido por 7 dias). */
 export default async function Page({ searchParams }: PageProps<"/primeiro-acesso">) {
   const sp = await searchParams;
   const token = typeof sp.token === "string" ? sp.token : "";
@@ -19,7 +19,7 @@ export default async function Page({ searchParams }: PageProps<"/primeiro-acesso
         <h1 className="text-lg font-semibold">{invite?.expired ? "Este convite expirou" : "Acesso somente por convite"}</h1>
         <p className="text-sm text-zinc-500">
           {invite?.expired
-            ? "O link de convite vale por 1 hora. Peça à administração um novo link."
+            ? "O link de convite vale por 7 dias. Peça à administração um novo link."
             : "Para criar uma conta, use o link pessoal enviado pela administração do festival."}
         </p>
         <a href="/login" className="text-sm text-brand-700 hover:underline">Já tenho acesso</a>

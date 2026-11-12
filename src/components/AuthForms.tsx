@@ -50,7 +50,7 @@ export function LoginForm() {
 }
 
 /**
- * Primeiro acesso pelo convite: o e-mail já vem do link (token de 1 hora), a pessoa
+ * Primeiro acesso pelo convite: o e-mail já vem do link (token de 7 dias), a pessoa
  * só informa nome e senha. A conta é criada já confirmada pela função "aceitar-convite".
  */
 export function AcceptInviteForm({ token, email }: { token: string; email: string }) {

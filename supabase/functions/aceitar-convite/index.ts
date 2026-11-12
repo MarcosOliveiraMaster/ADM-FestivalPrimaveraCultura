@@ -1,4 +1,4 @@
-// Aceita o convite da equipe: confere o token (1 hora), cria a conta já confirmada
+// Aceita o convite da equipe: confere o token (7 dias), cria a conta já confirmada
 // com o e-mail do convite e dá o acesso de equipe. Sem token válido, nada acontece.
 // Pública (verify_jwt = false): a autorização é o próprio token.
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: inv } = await admin.from("staff_invites").select("email, role, token_expires_at").eq("token_hash", await sha256(token)).maybeSingle();
     if (!inv) return json({ error: "Link de convite inválido ou já utilizado." }, 400);
-    if (!inv.token_expires_at || new Date(inv.token_expires_at) < new Date()) return json({ error: "Este link expirou (vale 1 hora). Peça um novo convite." }, 400);
+    if (!inv.token_expires_at || new Date(inv.token_expires_at) < new Date()) return json({ error: "Este link expirou (vale 7 dias). Peça um novo convite." }, 400);
 
     const meta = { full_name: name.trim() };
     let userId: string | null = null;
