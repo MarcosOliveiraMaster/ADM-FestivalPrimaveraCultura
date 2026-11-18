@@ -47,19 +47,20 @@ Deno.serve(async (req) => {
     const agenda = p.starts_at
       ? "https://calendar.google.com/calendar/render?" + new URLSearchParams({ action: "TEMPLATE", text: `${p.title} – ${festival}`, dates: `${utc(p.starts_at)}/${utc(end!)}`, location: p.location ?? "" })
       : null;
+    const training = p.kind === "capacitacao"; // capacitações (oficinas) têm texto próprio
     const btn = (href: string, label: string) =>
       `<a href="${esc(href)}" style="display:inline-block;background:#2f6f4f;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:bold;margin:4px 6px 4px 0">${label}</a>`;
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#1f2a24;line-height:1.6">
-        <h1 style="color:#2f6f4f;font-size:24px">Inscrição confirmada! ✿</h1>
+        <h1 style="color:#2f6f4f;font-size:24px">${training ? "Recebemos sua inscrição! ✿" : "Inscrição confirmada! ✿"}</h1>
         <p>Olá, ${esc(r.name)}.</p>
-        <p>Recebemos sua inscrição em <strong>${esc(p.title)}</strong> (${esc(festival)}).</p>
+        <p>${training ? "Recebemos sua inscrição para participar da capacitação" : "Recebemos sua inscrição em"} <strong>${esc(p.title)}</strong> (${esc(festival)}).${training ? " Sua vaga está garantida. Te esperamos lá!" : ""}</p>
         <p><strong>Quando:</strong> ${esc(when)}<br><strong>Onde:</strong> ${esc(p.location ?? "Local a definir")}</p>
         <p>${agenda ? btn(agenda, "Adicionar ao Google Agenda") : ""}${btn(`${site}/${PATHS[p.kind] ?? "eventos"}/${p.slug}`, `Ver ${LABELS[p.kind] ?? "evento"}`)}</p>
         <p style="font-size:13px;color:#777">Se você não fez esta inscrição, ignore este e-mail.</p>
       </div>`;
     try {
-      await sendEmail({ to: r.email, subject: `Inscrição confirmada: ${p.title}`, html, fromName: festival });
+      await sendEmail({ to: r.email, subject: training ? `Recebemos sua inscrição: ${p.title}` : `Inscrição confirmada: ${p.title}`, html, fromName: festival });
     } catch (e) {
       console.error(e);
       return json({ error: "Falha no envio" }, 502);
